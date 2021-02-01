@@ -11,12 +11,11 @@ class Creature:
     def attack(self, target): 
         attack = random.choice(range(self.dps[0], self.dps[1]+1))
         if random.random() < self.evasion:
-            attack = 0
-        elif random.random() < self.critChance:
+            return False
+        if random.random() < self.critChance:
             attack = (attack / 100) * 150
-            if target.shield:
-                attack = (attack / 100) * 70
-        elif target.shield:
+        attack = attack / (1 + (armorValue / 100))
+        if target.shield:
             attack = (attack / 100) * 70
         target.health -= attack
 
