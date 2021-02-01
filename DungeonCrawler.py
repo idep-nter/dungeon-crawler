@@ -46,7 +46,8 @@ class Player(Creature):
     def equipItem(self, item):
         try:
             if item not in self.inventory:
-                raise ValueError                  
+                raise ValueError
+            self.inventory.remove(item)                  
             if item == Weapon:
                 if self.weapon:
                     unEquipItem(self, item)
@@ -84,6 +85,7 @@ class Player(Creature):
         try:
             if item not in self.inventory:
                 raise ValueError
+            self.inventory.append(item) 
             if item == Weapon:
                 self.weapon = None
                 self.weight -= item.weight
