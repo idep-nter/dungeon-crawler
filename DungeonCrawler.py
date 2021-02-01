@@ -44,58 +44,70 @@ class Player(Creature):
         print(i for i in self.inventory)
 
     def equipItem(self, item):
-        if item == Weapon:
-            if self.weapon:
-                unEquipItem(self, item)
-            self.weapon = item
-            self.weight += item.weight
-            self.dps += item.dps
-            self.critChance += item.critChance
-        elif item == Shield:
-            if self.shield:
-                unEquipItem(self, item)
-            self.shield = item
-            self.weight += item.weight
-            self.armorValue += item.armorValue
-        elif item == Armor:
-            if self.armor:
-                unEquipItem(self, item)
-            self.armor = item
-            self.weight += item.weight
-            self.armorValue += item.armorValue
-            self.evasion += item.evasion
-        elif item == Ring:
-            if self.ring:
-                unEquipItem(self, item)
-            self.ring = item
-            self.maxHealth += item.maxHealth
-            self.dps += item.dps
-            self.armorValue += item.armorValue
-            self.evasion += item.evasion
-            self.critChance += item.critChance
+        try:
+            if item not in self.inventory:
+                raise ValueError                  
+            if item == Weapon:
+                if self.weapon:
+                    unEquipItem(self, item)
+                self.weapon = item
+                self.weight += item.weight
+                self.dps += item.dps
+                self.critChance += item.critChance
+            elif item == Shield:
+                if self.shield:
+                    unEquipItem(self, item)
+                self.shield = item
+                self.weight += item.weight
+                self.armorValue += item.armorValue
+            elif item == Armor:
+                if self.armor:
+                    unEquipItem(self, item)
+                self.armor = item
+                self.weight += item.weight
+                self.armorValue += item.armorValue
+                self.evasion += item.evasion
+            elif item == Ring:
+                if self.ring:
+                    unEquipItem(self, item)
+                self.ring = item
+                self.maxHealth += item.maxHealth
+                self.dps += item.dps
+                self.armorValue += item.armorValue
+                self.evasion += item.evasion
+                self.critChance += item.critChance
+
+        except ValueError:
+            print(f'{item} not in the inventory!')
 
     def unEquipItem(self, item):
-        if item == Weapon:
-            self.weapon = None
-            self.weight -= item.weight
-            self.dps -= item.dps
-            self.critChance -= item.critChance
-        elif item == Shield:
-            self.shield = None
-            self.weight -= item.weight
-            self.armorValue -= item.armorValue
-        elif item == Armor:
-            self.armor = None
-            self.weight -= item.weight
-            self.armorValue -= item.armorValue
-            self.evasion -= item.evasion
-        elif item == Ring:
-            self.ring = None
-            self.maxHealth -= item.maxHealth
-            self.dps -= item.dps
-            self.armorValue -= item.armorValue
-            self.evasion -= item.evasion
-            self.critChance -= item.critChance
+        try:
+            if item not in self.inventory:
+                raise ValueError
+            if item == Weapon:
+                self.weapon = None
+                self.weight -= item.weight
+                self.dps -= item.dps
+                self.critChance -= item.critChance
+            elif item == Shield:
+                self.shield = None
+                self.weight -= item.weight
+                self.armorValue -= item.armorValue
+            elif item == Armor:
+                self.armor = None
+                self.weight -= item.weight
+                self.armorValue -= item.armorValue
+                self.evasion -= item.evasion
+            elif item == Ring:
+                self.ring = None
+                self.maxHealth -= item.maxHealth
+                self.dps -= item.dps
+                self.armorValue -= item.armorValue
+                self.evasion -= item.evasion
+                self.critChance -= item.critChance
+
+        except ValueError:
+            print(f'{item} not in the inventory!')
 
     def drinkPotion(self, potion):
         self.health += potion.health
