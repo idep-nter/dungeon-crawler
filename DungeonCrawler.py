@@ -111,9 +111,16 @@ class Player(Creature):
             print(f'{item} not in the inventory!')
 
     def drinkPotion(self, potion):
-        self.health += potion.health
-        if self.health > maxHealth:
-            health = maxHealth
+        try:
+            if potion not in self.inventory:
+                raise ValueError
+            self.inventory.remove(potion)
+            self.health += potion.health
+            if self.health > maxHealth:
+                health = maxHealth
+                
+        except ValueError:
+            print(f'{potion} not in the inventory!')
 
 class Monster(Creature):
     def __init__(self, name, health, dps, armorValue, evasion, critChance, 
