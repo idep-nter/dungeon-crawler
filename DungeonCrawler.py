@@ -45,46 +45,49 @@ class Player(Creature):
     def equipItem(self, item):
         try:
             if item not in self.inventory:
-                raise ValueError
-            self.inventory.remove(item)                  
+                raise ValueError                  
             if item == Weapon:
+                if not handCheck(self, item):
+                    raise ValueError
                 if self.weapon:
-                    unEquipItem(self, item)
+                    unequipItem(self, item)
                 self.weapon = item
                 self.weight += item.weight
                 self.dps += item.dps
                 self.critChance += item.critChance
             elif item == Shield:
+                if not handCheck(self, item):
+                    raise ValueError
                 if self.shield:
-                    unEquipItem(self, item)
+                    unequipItem(self, item)
                 self.shield = item
                 self.weight += item.weight
                 self.armorValue += item.armorValue
             elif item == Armor:
                 if self.armor:
-                    unEquipItem(self, item)
+                    unequipItem(self, item)
                 self.armor = item
                 self.weight += item.weight
                 self.armorValue += item.armorValue
                 self.evasion += item.evasion
             elif item == Ring:
                 if self.ring:
-                    unEquipItem(self, item)
+                    unequipItem(self, item)
                 self.ring = item
                 self.maxHealth += item.maxHealth
                 self.dps += item.dps
                 self.armorValue += item.armorValue
                 self.evasion += item.evasion
                 self.critChance += item.critChance
+            self.inventory.remove(item)
 
         except ValueError:
-            print(f'{item} not in the inventory!')
+            print(f'{item} not in the inventory or check hands!') #change
 
-    def unEquipItem(self, item):
+    def unequipItem(self, item):
         try:
             if item not in self.inventory:
                 raise ValueError
-            self.inventory.append(item) 
             if item == Weapon:
                 self.weapon = None
                 self.weight -= item.weight
@@ -106,6 +109,7 @@ class Player(Creature):
                 self.armorValue -= item.armorValue
                 self.evasion -= item.evasion
                 self.critChance -= item.critChance
+            self.inventory.append(item) 
 
         except ValueError:
             print(f'{item} not in the inventory!')
@@ -118,50 +122,53 @@ class Player(Creature):
             self.health += potion.health
             if self.health > maxHealth:
                 health = maxHealth
-                
+
         except ValueError:
             print(f'{potion} not in the inventory!')
 
+    def handCheck(self, item):
+        if item == Weapon:
+            return False if item.hand == 2 and self.shield else True
+        if item == Shield:
+            return False if self.weapon.hand == 2 else True
+
 class Monster(Creature):
-    def __init__(self, name, health, dps, armorValue, evasion, critChance, 
-        decription):
+    def __init__(self, name, health, dps, armorValue, evasion, critChance):
         super().__init__(name, health, dps, armorValue, evasion, critChance)
         self.inventory = []
-        self.decription = decription
 
     def itemDrop(self):
         item = random.choice(self.inventory)
         Player.inventory.append(item)
 
-    def __str__():
-        return self.decription
-
 class Item:
-    def __init__(self, value, weight):
+    def __init__(self, rarity, value, weight):
+        self.rarity = rarity
         self.value = value
         self.weight = weight
 
 class Weapon(Item):
-    def __init__(self, value, weight, dps, critChance):
-        super().__init__(value, weight)
+    def __init__(self, rarity, value, weight, hand, dps, critChance):
+        super().__init__(rarity, value, weight)
+        self.hand = hand
         self.dps = dps
         self.critChance = critChance
 
 class Shield(Item):
-    def __init__(self, value, weight, armorValue):
-        super().__init__(value, weight)
+    def __init__(self, rarity, value, weight, armorValue):
+        super().__init__(rarity, value, weight)
         self.armorValue = armorValue
 
 class Armor(Item):
-    def __init__(self, value, weight, armorValue, evasion):
-        super().__init__(value, weight)
+    def __init__(self, rarity, value, weight, armorValue, evasion):
+        super().__init__(rarity, value, weight)
         self.armorValue = armorValue
         self.evasion = evasion
 
 class Ring(Item):
-    def __init__(self, value, maxHealth=None, dps=None, 
+    def __init__(self, rarity, value, maxHealth=None, dps=None, 
         armorValue=None, evasion=None, critChance=None):
-        super().__init__(value, weight)
+        super().__init__(rarity, value, weight)
         self.maxHealth = maxHealth
         self.dps = dps
         self.armorValue = armorValue
@@ -169,6 +176,6 @@ class Ring(Item):
         self.critChance = critChance
 
 class Potion(Item):
-    def __init__(self, value, health):
-        super().__init__(value, weight)
+    def __init__(self, rarity, value, health):
+        super().__init__(rarity, value, weight)
         self.health = health
