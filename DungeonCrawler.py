@@ -179,3 +179,16 @@ class Potion(Item):
     def __init__(self, rarity, value, health):
         super().__init__(rarity, value, weight)
         self.health = health
+        
+class Chest():
+    def __init__(self, items):
+        self.items = items
+
+    def itemFind(self, items):
+        item = random.choice(items)
+        Player.inventory.append(item)
+
+    def trap(self):
+        if random.random() < 0.1:
+            Player.currentHealth -= 30
+
