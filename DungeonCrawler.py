@@ -1,9 +1,9 @@
 import random
 
 rustyDagger = Weapon('Rusty Dagger', 'common', 1, 2, '1hand', [2, 5], 0.1)
-longSwordOfMight = Weapon('Long sword of might', 'uncommon', 12, 5, '1hand', 
+longSwordOfMight = Weapon('Long Sword of Might', 'uncommon', 12, 5, '1hand', 
     [10, 14], 0.05)
-ultraGreatswordOfDeath = Weapon('Ultra greatsword of death', 'rare', 50, 10, 
+ultraGreatswordOfDeath = Weapon('Ultra Greatsword of Death', 'rare', 50, 10, 
     '2hand', [20, 30], 0.05)
 
 items = {'common' : {'weapon' : [rustyDagger], 'armor' : [], 'shield' : []},
