@@ -1,21 +1,9 @@
 import random
 
-rustyDagger = Weapon('Rusty Dagger', 'common', 1, 2, '1hand', [2, 5], 0.1)
-longSwordOfMight = Weapon('Long Sword of Might', 'uncommon', 12, 5, '1hand', 
-    [10, 14], 0.05)
-ultraGreatswordOfDeath = Weapon('Ultra Greatsword of Death', 'rare', 50, 10, 
-    '2hand', [20, 30], 0.05)
-
-items = {'common' : {'weapon' : [rustyDagger], 'armor' : [], 'shield' : []},
-         'uncommon' : {'weapon' : [longSwordOfMight], 'armor' : [], 
-                       'shield' : []},
-         'rare' : {'weapon' : [ultraGreatswordOfDeath], 'armor' : [], 
-                   'shield' : []}}
-
-l1Map = {}
 
 class Creature:
     def __init__(self, name, health, dps, armorValue, evasion, critChance):
+        self.name = name
         self.health = health
         self.dps = dps
         self.armorValue = armorValue
@@ -60,8 +48,8 @@ class Creature:
         Player.gold += gold
 
 class Player(Creature):
-    def __init__(self, maxHealth=100, currentHealth=100, dps=[0, 0], 
-        armorValue=0, evasion=0,critChance=0.01, maxWeight=100, currentWeight=0, 
+    def __init__(self, maxHealth=100, currentHealth=100, dps=[1,4], 
+        armorValue=0, evasion=0, critChance=0.01, maxWeight=100, currentWeight=0, 
         weapon=None, shield=None, armor=None, ring=None, gold=0):
         super().__init__(name, dps, armorValue, evasion, critChance)
         self.maxHealth = maxHealth 
@@ -185,7 +173,7 @@ class Boss(Creature):
     #def specialAbility(self):
 
 class Item:
-    def __init__(name, self, rarity, value, weight):
+    def __init__(self, name, rarity, value, weight):
         self.name = name
         self.rarity = rarity
         self.value = value
@@ -248,3 +236,21 @@ class Chest():
     def trap(self):
         if random.random() < 0.1:
             Player.currentHealth -= random.randint(10, 30)
+
+
+rustyDagger = Weapon('Rusty Dagger', 'common', 1, 2, '1hand', [2, 5], 0.1)
+longSwordOfMight = Weapon('Long Sword of Might', 'uncommon', 12, 5, '1hand',
+                          [10, 14], 0.05)
+ultraGreatswordOfDeath = Weapon('Ultra Greatsword of Death', 'rare', 50, 10,
+                                '2hand', [20, 30], 0.05)
+
+items = {'common': {'weapon': [rustyDagger], 'armor': [], 'shield': []},
+
+         'uncommon': {'weapon': [longSwordOfMight], 'armor': [],
+                      'shield': []},
+
+         'rare': {'weapon': [ultraGreatswordOfDeath], 'armor': [],
+                  'shield': []}
+         }
+
+l1Map = {}
