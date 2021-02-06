@@ -248,13 +248,13 @@ class Chest:
             Player.currentHealth -= random.randint(10, 30)
 
 
-dagger = Weapon('Dagger', 'dagger' 'common', 3, 2, 'one hand', [3, 7], 0.2)
-axe = Weapon('Axe', 'axe' 'common', 5, 5, 'one hand', [5, 10], 0.1)
-longSword = Weapon('Long Sword', 'long sword' 'common', 5, 4, 'one hand',
+dagger = Weapon('Dagger', 'dagger', 'common', 3, 2, 'one hand', [3, 7], 0.2)
+axe = Weapon('Axe', 'axe', 'common', 5, 5, 'one hand', [5, 10], 0.1)
+longSword = Weapon('Long Sword', 'long sword', 'common', 5, 4, 'one hand',
                    [7, 9], 0.05)
-twoHandedSword = Weapon('Two Handed Sword', 'two handed sword' 'common', 8, 8,
+twoHandedSword = Weapon('Two Handed Sword', 'two handed sword', 'common', 8, 8,
                         'two hand', [11, 15], 0.1)
-twoHandedAxe = Weapon('Two Handed Axe', 'two handed axe' 'common', 9, 10,
+twoHandedAxe = Weapon('Two Handed Axe', 'two handed axe', 'common', 9, 10,
                       'two hand', [10, 17], 0.1)
 shadowStrike = Weapon('Shadow Strike', 'dagger', 'uncommon', 23, 2, 'one hand',
                       [12, 16], 0.2)
@@ -262,19 +262,19 @@ peaceMaker = Weapon('Peace Maker', 'axe', 'uncommon', 28, 6, 'one hand',
                     [12, 20], 0.1)
 oathKeeper = Weapon('Oath Keeper', 'long sword', 'uncommon', 26, 4, 'one hand',
                     [15, 18], 0.05)
-soulReaper = Weapon('Soul Reaper', 'two handed sword' 'uncommon', 35, 10,
+soulReaper = Weapon('Soul Reaper', 'two handed sword', 'uncommon', 35, 10,
                     'two hand', [35, 40], 0.1)
-rapture = Weapon('Rapture', 'two handed axe' 'uncommon', 37, 11,
+rapture = Weapon('Rapture', 'two handed axe', 'uncommon', 37, 11,
                  'two hand', [31, 44], 0.1)
-sinisterCarver = Weapon('Sinister Carver', 'dagger' 'rare', 50, 2, 'one hand',
+sinisterCarver = Weapon('Sinister Carver', 'dagger', 'rare', 50, 2, 'one hand',
                         [42, 50], 0.2)
-harbinger = Weapon('Harbinger', 'axe' 'rare', 56, 6, 'one hand', [45, 60], 0.1)
-blindJustice = Weapon('Blind Justice', 'long sword' 'rare', 58, 4, 'one hand',
+harbinger = Weapon('Harbinger', 'axe', 'rare', 56, 6, 'one hand', [45, 60], 0.1)
+blindJustice = Weapon('Blind Justice', 'long sword', 'rare', 58, 4, 'one hand',
                       [51, 55], 0.05)
-stormbringer = Weapon('Two Handed Sword', 'two handed sword' 'rare', 72, 12,
+stormbringer = Weapon('Two Handed Sword', 'two handed sword', 'rare', 72, 12,
                       'two hand', [72, 79], 0.1)
-eclipse = Weapon('Eclipse', 'two handed axe' 'rare', 78, 12, 'two hand', [68, 85],
-                 0.1)
+eclipse = Weapon('Eclipse', 'two handed axe', 'rare', 78, 12, 'two hand',
+                 [68, 85], 0.1)
 
 # add more difference between shield types
 smallShield = Shield('Small Shield', 'small shield', 'common', 4, 5, 5)
@@ -308,5 +308,15 @@ items = {'common': {'weapon': [dagger, axe, longSword, twoHandedSword,
                   'armor': [favorOfPhantoms, cryOfTheBerserker],
                   'shield': [tranquility, theSentry]}
          }
+
+rat = Monster('Rat', 20, [1, 3], 0, 0.1, 0.2)
+vileBat = Monster('Vile Bat', 15, [2, 3], 0, 0.3, 0.2)
+zombie = Monster('Zombie', 30, [3, 5], 5, 0, 0.05)
+skeletonWarrior = Monster('Skeleton Warrior', 25, [3, 7], 20, 0.1, 0.1)
+lesserShade = Monster('Lesser Shade', 10, [2, 6], 0, 0.5, 0.1)
+giantSpider = Monster('Giant Spider', 25, [3, 8], 10, 0.1, 0.1)
+
+
+
 
 l1Map = {}
