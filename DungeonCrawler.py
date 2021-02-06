@@ -41,18 +41,18 @@ class Creature:
         # global items
         items.remove[item]
 
-    def dropGold(self):
+    def dropGold(self, player):
         if self == Boss:
             gold = random.randint(50, 100)
         else:
             gold = random.randint(5, 20)
-        Player.gold += gold
+        player.gold += gold
 
 
 class Player(Creature):
-    def __init__(self, name, shield, maxHealth=100, currentHealth=100, dps=[1, 4],
-                 armorValue=0, evasion=0.2, critChance=0.01, maxWeight=100,
-                 currentWeight=0, weapon=None, armor=None,
+    def __init__(self, name, shield, maxHealth=100, currentHealth=100,
+                 dps=[1, 4], armorValue=0, evasion=0.2, critChance=0.01,
+                 maxWeight=100,currentWeight=0, weapon=None, armor=None,
                  ring=None, gold=0):
         super().__init__(name, dps, armorValue, shield, evasion, critChance)
         self.maxHealth = maxHealth
@@ -99,7 +99,7 @@ class Player(Creature):
                 if self.armor:
                     self.unequipItem(item)
                 self.armor = item
-                self.weight += item.weight
+                self.currentWeight += item.weight
                 self.armorValue += item.armorValue
                 self.evasion += item.evasion
             elif item == Ring:
@@ -122,16 +122,16 @@ class Player(Creature):
                 raise ValueError
             if item == Weapon:
                 self.weapon = None
-                self.weight -= item.weight
+                self.currentWeight -= item.weight
                 self.dps -= item.dps
                 self.critChance -= item.critChance
             elif item == Shield:
                 self.shield = None
-                self.weight -= item.weight
+                self.currentWeight -= item.weight
                 self.armorValue -= item.armorValue
             elif item == Armor:
                 self.armor = None
-                self.weight -= item.weight
+                self.currentWeight -= item.weight
                 self.armorValue -= item.armorValue
                 self.evasion -= item.evasion
             elif item == Ring:
@@ -232,8 +232,8 @@ class Potion(Item):
 class Shrine:
     def __init__(self):
 
-    def heal(self, target):
-        target.currentHealth = target.maxHealth
+    def heal(self, player):
+        player.currentHealth = player.maxHealth
 
 class Chest:
     def __init__(self, items):
