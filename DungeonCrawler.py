@@ -2,13 +2,15 @@ import random
 
 
 class Creature:
-    def __init__(self, name, health, dps, armorValue, evasion, critChance):
+    def __init__(self, name, health, dps, armorValue,
+                 evasion, critChance, shield=None):
         self.name = name
         self.health = health
         self.dps = dps
         self.armorValue = armorValue
         self.evasion = evasion
         self.critChance = critChance
+        self.shield = shield
 
     def attack(self, target):
         attack = random.choice(range(self.dps[0], self.dps[1] + 1))
@@ -21,10 +23,10 @@ class Creature:
             attack = (attack / 100) * 70
         target.health -= attack
 
-    def itemDrop(self, items):
+    def itemDrop(self, player, items):
         if self == Boss:
             item = random.choice(items['rare'])
-            Player.inventory.append(item)
+            player.inventory.append(item)
             # global items
             items.remove[item]
 
@@ -35,7 +37,7 @@ class Creature:
             item = random.choice(items['uncommon'])
         else:
             item = random.choice(items['common'])
-        Player.inventory.append(item)
+        player.inventory.append(item)
         # global items
         items.remove[item]
 
@@ -48,11 +50,11 @@ class Creature:
 
 
 class Player(Creature):
-    def __init__(self, name, maxHealth=100, currentHealth=100, dps=[1, 4],
+    def __init__(self, name, shield, maxHealth=100, currentHealth=100, dps=[1, 4],
                  armorValue=0, evasion=0.2, critChance=0.01, maxWeight=100,
-                 currentWeight=0, weapon=None, shield=None, armor=None,
+                 currentWeight=0, weapon=None, armor=None,
                  ring=None, gold=0):
-        super().__init__(name, dps, armorValue, evasion, critChance)
+        super().__init__(name, dps, armorValue, shield, evasion, critChance)
         self.maxHealth = maxHealth
         self.currentHealth = currentHealth
         self.maxWeight = maxWeight
@@ -82,7 +84,7 @@ class Player(Creature):
                 if self.weapon:
                     self.unequipItem(item)
                 self.weapon = item
-                self.weight += item.weight
+                self.currentWeight += item.weight
                 self.dps += item.dps
                 self.critChance += item.critChance
             elif item == Shield:
@@ -91,7 +93,7 @@ class Player(Creature):
                 if self.shield:
                     self.unequipItem(item)
                 self.shield = item
-                self.weight += item.weight
+                self.currentWeight += item.weight
                 self.armorValue += item.armorValue
             elif item == Armor:
                 if self.armor:
@@ -164,13 +166,18 @@ class Player(Creature):
 
 
 class Monster(Creature):
-    def __init__(self, name, health, dps, armorValue, evasion, critChance):
-        super().__init__(name, health, dps, armorValue, evasion, critChance)
+    def __init__(self, name, health, dps, armorValue, evasion,
+                 critChance, shield=None):
+        super().__init__(name, health, dps, armorValue, evasion,
+                         critChance, shield)
 
+    # def specialAbility(self)
 
 class Boss(Creature):
-    def __init__(self, name, health, dps, armorValue, evasion, critChance):
-        super().__init__(name, health, dps, armorValue, evasion, critChance)
+    def __init__(self, name, health, dps, armorValue, evasion,
+                 critChance, shield=None):
+        super().__init__(name, health, dps, armorValue, evasion,
+                         critChance, shield)
 
     # def specialAbility(self):
 
@@ -222,16 +229,21 @@ class Potion(Item):
         super().__init__(name, rarity, value)
         self.health = health
 
+class Shrine:
+    def __init__(self):
+
+    def heal(self, target):
+        target.currentHealth = target.maxHealth
 
 class Chest:
     def __init__(self, items):
         self.items = items
 
-    def open(self):
-        self.itemFind(items)
-        self.trap()
+    def open(self, player, items):
+        self.itemFind(player, items)
+        self.trap(player)
 
-    def itemFind(self, items):
+    def itemFind(self, player, items):
         n = random.random()
         if n < 0.3:
             item = random.choice(items['rare'])
@@ -239,13 +251,13 @@ class Chest:
             item = random.choice(items['uncommon'])
         else:
             item = random.choice(items['common'])
-        Player.inventory.append(item)
+        player.inventory.append(item)
         # global items
         items.remove[item]
 
-    def trap(self):
+    def trap(self, player):
         if random.random() < 0.1:
-            Player.currentHealth -= random.randint(10, 30)
+            player.currentHealth -= random.randint(10, 30)
 
 
 dagger = Weapon('Dagger', 'dagger', 'common', 3, 2, 'one hand', [3, 7], 0.2)
@@ -316,7 +328,14 @@ skeletonWarrior = Monster('Skeleton Warrior', 25, [3, 7], 20, 0.1, 0.1)
 lesserShade = Monster('Lesser Shade', 10, [2, 6], 0, 0.5, 0.1)
 giantSpider = Monster('Giant Spider', 25, [3, 8], 10, 0.1, 0.1)
 
+darkKnight = Boss('Dark Knight', 80, [10, 15], 50, 0.05, 0.1, shield=True)
 
+shrine = Shrine()
 
+chest = Chest(items)
 
-l1Map = {}
+l1Map = {'s1' : Player, 's2' : vileBat, 's3' : lesserShade, 's4' : chest,
+         's5' : rat, 's6' : chest, 's7' : zombie, 's8' : vileBat,
+         's9' : chest, 's10' : skeletonWarrior, 's11' : shrine, 's12' : chest,
+         's13' : rat, 's14' : giantSpider, 's15' : lesserShade,
+         's16' : darkKnight}
