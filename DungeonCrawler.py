@@ -2,10 +2,10 @@ import random
 
 
 class Creature:
-    def __init__(self, name, health, dps, armorValue,
+    def __init__(self, name, currentHealth, dps, armorValue,
                  evasion, critChance, shield=None):
         self.name = name
-        self.health = health
+        self.currentHealth = currentHealth
         self.dps = dps
         self.armorValue = armorValue
         self.evasion = evasion
@@ -18,10 +18,13 @@ class Creature:
             return False
         if random.random() < self.critChance:
             attack = (attack / 100) * 150
-        attack = attack / (1 + (target.armorValue / 100))
         if target.shield:
             attack = (attack / 100) * 70
-        target.health -= attack
+        attack = attack / (1 + (target.armorValue / 100))
+        target.currentHealth -= attack
+
+    def death(self):
+         return True if self.currentHealth < 0 else False
 
     def itemDrop(self, player, items):
         if self == Boss:
@@ -50,21 +53,21 @@ class Creature:
 
 
 class Player(Creature):
-    def __init__(self, name, shield, maxHealth=100, currentHealth=100,
-                 dps=[1, 4], armorValue=0, evasion=0.2, critChance=0.01,
-                 maxWeight=100,currentWeight=0, weapon=None, armor=None,
-                 ring=None, gold=0):
+    def __init__(self, name, maxHealth=100, currentHealth=100,
+                 dps=[1, 4], armorValue=0, evasion=0.2, critChance=0.1,
+                 maxWeight=100, currentWeight=0, gold=0, weapon=None,
+                 armor=None, ring=None, shield=None):
         super().__init__(name, dps, armorValue, shield, evasion, critChance)
         self.maxHealth = maxHealth
         self.currentHealth = currentHealth
         self.maxWeight = maxWeight
         self.currentWeight = currentWeight
+        self.gold = gold
         self.inventory = []
         self.weapon = weapon
-        self.shield = shield
         self.armor = armor
         self.ring = ring
-        self.gold = gold
+        self.shield = shield
 
     def showChar(self):
         attrs = vars(Player)
@@ -77,6 +80,8 @@ class Player(Creature):
     def equipItem(self, item):
         try:
             if item not in self.inventory:
+                raise ValueError
+            if not self.weightCheck(item):
                 raise ValueError
             if item == Weapon:
                 if not self.handCheck(item):
@@ -113,8 +118,9 @@ class Player(Creature):
                 self.critChance += item.critChance
             self.inventory.remove(item)
 
+        # add different messages for different problems
         except ValueError:
-            print(f'{item} not in the inventory or check hands!')  # change
+            print(f'{item} not in the inventory or check hands or weight!')
 
     def unequipItem(self, item):
         try:
@@ -151,9 +157,9 @@ class Player(Creature):
             if potion not in self.inventory:
                 raise ValueError
             self.inventory.remove(potion)
-            self.health += potion.health
-            if self.health > self.maxHealth:
-                self.health = self.maxHealth
+            self.currentHealth += potion.heal
+            if self.currentHealth > self.maxHealth:
+                self.currentHealth = self.maxHealth
 
         except ValueError:
             print(f'{potion} not in the inventory!')
@@ -164,26 +170,30 @@ class Player(Creature):
         if item == Shield:
             return False if self.weapon.hand == 'two hand' else True
 
+    def weightCheck(self, item):
+        return False if self.currentWeight + item.weight > self.maxWeight else \
+            True
+
 
 class Monster(Creature):
-    def __init__(self, name, health, dps, armorValue, evasion,
+    def __init__(self, name, currentHealth, dps, armorValue, evasion,
                  critChance, shield=None):
-        super().__init__(name, health, dps, armorValue, evasion,
+        super().__init__(name, currentHealth, dps, armorValue, evasion,
                          critChance, shield)
 
     # def specialAbility(self)
 
 class Boss(Creature):
-    def __init__(self, name, health, dps, armorValue, evasion,
+    def __init__(self, name, currentHealth, dps, armorValue, evasion,
                  critChance, shield=None):
-        super().__init__(name, health, dps, armorValue, evasion,
+        super().__init__(name, currentHealth, dps, armorValue, evasion,
                          critChance, shield)
 
     # def specialAbility(self):
 
 
 class Item:
-    def __init__(self, name, type, rarity, value, weight):
+    def __init__(self, name, type, rarity, value, weight=None):
         self.type = type
         self.name = name
         self.rarity = rarity
@@ -201,9 +211,10 @@ class Weapon(Item):
 
 
 class Shield(Item):
-    def __init__(self, name, type, rarity, value, weight, armorValue):
+    def __init__(self, name, type, rarity, value, weight, armorValue, evasion):
         super().__init__(name, type, rarity, value, weight)
         self.armorValue = armorValue
+        self.evasion = evasion
 
 
 class Armor(Item):
@@ -225,12 +236,13 @@ class Ring(Item):
 
 
 class Potion(Item):
-    def __init__(self, name, rarity, value, health):
+    def __init__(self, name, rarity, value, heal):
         super().__init__(name, rarity, value)
-        self.health = health
+        self.heal = heal
 
 class Shrine:
     def __init__(self):
+        pass
 
     def heal(self, player):
         player.currentHealth = player.maxHealth
@@ -287,26 +299,22 @@ stormbringer = Weapon('Two Handed Sword', 'two handed sword', 'rare', 72, 12,
                       'two hand', [72, 79], 0.1)
 eclipse = Weapon('Eclipse', 'two handed axe', 'rare', 78, 12, 'two hand',
                  [68, 85], 0.1)
-
-# add more difference between shield types
-smallShield = Shield('Small Shield', 'small shield', 'common', 4, 5, 5)
-greatShield = Shield('Great Shield', 'great shield', 'common', 6, 10, 11)
-dawnGuard = Shield('Dawn Guard', 'small shield', 'uncommon', 13, 6, 13)
-heroWarden = Shield('Hero Warden', 'great shield', 'uncommon', 17, 12, 19)
-tranquility = Shield('Tranquility', 'small shield', 'rare', 28, 5, 22)
-theSentry = Shield('The Sentry', 'small shield', 'rare', 36, 13, 32)
-
-leatherArmor = Armor('Leather Armor', 'light armor', 'common', 8, 10, 16, -0.05)
+smallShield = Shield('Small Shield', 'small shield', 'common', 4, 5, 5, -0.1)
+greatShield = Shield('Great Shield', 'great shield', 'common', 6, 10, 11, -0.2)
+dawnGuard = Shield('Dawn Guard', 'small shield', 'uncommon', 13, 6, 13, -0.1)
+heroWarden = Shield('Hero Warden', 'great shield', 'uncommon', 17, 12, 19, -0.2)
+tranquility = Shield('Tranquility', 'small shield', 'rare', 28, 5, 22, -0.1)
+theSentry = Shield('The Sentry', 'small shield', 'rare', 36, 13, 32, -0.2)
+leatherArmor = Armor('Leather Armor', 'light armor', 'common', 8, 10, 16, -0.1)
 plateArmor = Armor('Plate Armor', 'heavy armor', 'common', 13, 32, 35, -0.2)
 soulOfTheEast = Armor('Soul of the East', 'light armor', 'uncommon', 29, 11, 28,
-                      -0.05)
+                      -0.1)
 twillightIronArmor = Armor('Twillight Iron Armor', 'heavy armor', 'uncommon',
                            34, 36, 62, -0.2)
 favorOfPhantoms = Armor('Favor of Phantoms', 'light armor', 'rare', 62, 10, 42,
-                        -0.05)
+                        -0.1)
 cryOfTheBerserker = Armor('Cry of the Berserker', 'heavy armor', 'rare', 68, 36,
                           88, -0.2)
-
 items = {'common': {'weapon': [dagger, axe, longSword, twoHandedSword,
                                twoHandedAxe],
                     'armor': [leatherArmor, plateArmor],
@@ -327,15 +335,41 @@ zombie = Monster('Zombie', 30, [3, 5], 5, 0, 0.05)
 skeletonWarrior = Monster('Skeleton Warrior', 25, [3, 7], 20, 0.1, 0.1)
 lesserShade = Monster('Lesser Shade', 10, [2, 6], 0, 0.5, 0.1)
 giantSpider = Monster('Giant Spider', 25, [3, 8], 10, 0.1, 0.1)
-
 darkKnight = Boss('Dark Knight', 80, [10, 15], 50, 0.05, 0.1, shield=True)
-
 shrine = Shrine()
-
 chest = Chest(items)
-
-l1Map = {'s1' : Player, 's2' : vileBat, 's3' : lesserShade, 's4' : chest,
+l1Map = {'s1' : None, 's2' : vileBat, 's3' : lesserShade, 's4' : chest,
          's5' : rat, 's6' : chest, 's7' : zombie, 's8' : vileBat,
          's9' : chest, 's10' : skeletonWarrior, 's11' : shrine, 's12' : chest,
          's13' : rat, 's14' : giantSpider, 's15' : lesserShade,
          's16' : darkKnight}
+
+# need to figure it out how to effectively move on the map
+def main():
+    intro1()
+    name = input()
+    intro2(name)
+    room = l1Map['s1']
+    step = input()
+    if step.lower() == 'left':
+        room = l1Map['s2']
+    elif step.lower() == 'right'
+        room = l1Map['s5']
+
+def intro1():
+    print("""
+You woke up in the darkness. Your head hurts like some troll hit it with a huge 
+club. You remember nothing... wait! You remember your name which is...     
+    """)
+
+def intro2(name):
+    print(f"""
+Oh yes, you are {name}.! That\'s right. After a while you got used to the dark 
+and realize you woke up in a cell. Somebody had to lock you up after he knocked 
+you out. You try to get up and then you notice that the cell doors are open. 
+OK, let\'s do this! You step into the unknown... 
+
+You come to an empty room lit by torches. There are two doors... which one is 
+it going to be? Left or right?
+""")
+
