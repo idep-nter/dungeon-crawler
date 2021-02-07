@@ -271,6 +271,21 @@ class Chest:
         if random.random() < 0.1:
             player.currentHealth -= random.randint(10, 30)
 
+"""
+l1Map = {'s1' : None, 's2' : vileBat, 's3' : lesserShade, 's4' : chest,
+         's5' : rat, 's6' : chest, 's7' : zombie, 's8' : vileBat,
+         's9' : chest, 's10' : skeletonWarrior, 's11' : shrine, 's12' : chest,
+         's13' : rat, 's14' : giantSpider, 's15' : lesserShade,
+         's16' : darkKnight}
+"""
+class Map(list):
+
+    def __str__(self):
+        return "\n".join(" ".join(row) for row in self)
+
+class Game(): # this one is tough!
+    def __init__(self):
+
 
 dagger = Weapon('Dagger', 'dagger', 'common', 3, 2, 'one hand', [3, 7], 0.2)
 axe = Weapon('Axe', 'axe', 'common', 5, 5, 'one hand', [5, 10], 0.1)
@@ -338,23 +353,6 @@ giantSpider = Monster('Giant Spider', 25, [3, 8], 10, 0.1, 0.1)
 darkKnight = Boss('Dark Knight', 80, [10, 15], 50, 0.05, 0.1, shield=True)
 shrine = Shrine()
 chest = Chest(items)
-l1Map = {'s1' : None, 's2' : vileBat, 's3' : lesserShade, 's4' : chest,
-         's5' : rat, 's6' : chest, 's7' : zombie, 's8' : vileBat,
-         's9' : chest, 's10' : skeletonWarrior, 's11' : shrine, 's12' : chest,
-         's13' : rat, 's14' : giantSpider, 's15' : lesserShade,
-         's16' : darkKnight}
-
-# need to figure it out how to effectively move on the map
-def main():
-    intro1()
-    name = input()
-    intro2(name)
-    room = l1Map['s1']
-    step = input()
-    if step.lower() == 'left':
-        room = l1Map['s2']
-    elif step.lower() == 'right'
-        room = l1Map['s5']
 
 def intro1():
     print("""
