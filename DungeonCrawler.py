@@ -271,20 +271,64 @@ class Chest:
         if random.random() < 0.1:
             player.currentHealth -= random.randint(10, 30)
 
+
 """
-l1Map = {'s1' : None, 's2' : vileBat, 's3' : lesserShade, 's4' : chest,
+l1Map = {'s1' : lesserShade, 's2' : vileBat, 's3' : None, 's4' : chest,
          's5' : rat, 's6' : chest, 's7' : zombie, 's8' : vileBat,
          's9' : chest, 's10' : skeletonWarrior, 's11' : shrine, 's12' : chest,
          's13' : rat, 's14' : giantSpider, 's15' : lesserShade,
          's16' : darkKnight}
 """
-class Map(list):
+class Level(list): # or dict?
 
     def __str__(self):
         return "\n".join(" ".join(row) for row in self)
 
-class Game(): # this one is tough!
+
+class Game(): # need to integrate dictionary of objects and game settings
+
+    markerX = "X"
+    markerO = "O"
+    ctrls = ["left", None, "right", "up", None, "down"]
+    exit = 'stop'
+    start = [0, 3]
+    default = [["?"] * 4 for _ in range(4)]
+
     def __init__(self):
+        self.flag = True
+        self.level = Level(Game.default)
+        self.prevPos = Game.start[:]
+        self.currPos = Game.start[:]
+        self.movePlayer()
+
+    def movePlayer(self):
+        px, py = self.prevPos
+        cx, cy = self.currPos
+        if (-1 < cx < 4) and (-1 < cy < 4):
+            self.level[py][px] = Game.markerO
+            self.level[cy][cx] = Game.markerX
+        else:
+            print("Please enter a proper direction.")
+            self.currPos = self.prevPos[:]
+            self.movePlayer()
+
+    def play(self):
+        intro1()
+        name = input()
+        intro2(name)
+        gameRules()
+        while self.flag:
+            print(str(self.level))
+            ctrl = input("Which way would you like to go?").lower()
+            if ctrl in Game.ctrls:
+                d = Game.ctrls.index(ctrl)
+                self.prevPos = self.currPos[:]
+                self.currPos[d > 2] += d - (1 if d < 3 else 4) # need to look at
+                self.movePlayer()
+            elif ctrl == Game.exit:
+                self.flag = False
+            else:
+                print("Please enter a proper direction.")
 
 
 dagger = Weapon('Dagger', 'dagger', 'common', 3, 2, 'one hand', [3, 7], 0.2)
@@ -356,18 +400,25 @@ chest = Chest(items)
 
 def intro1():
     print("""
-You woke up in the darkness. Your head hurts like some troll hit it with a huge 
+You wake up in the darkness. Your head hurts like some troll hit it with a huge 
 club. You remember nothing... wait! You remember your name which is...     
     """)
 
 def intro2(name):
     print(f"""
 Oh yes, you are {name}.! That\'s right. After a while you got used to the dark 
-and realize you woke up in a cell. Somebody had to lock you up after he knocked 
-you out. You try to get up and then you notice that the cell doors are open. 
-OK, let\'s do this! You step into the unknown... 
+and realized you had woke up in a cell. Somebody had to lock you up after he had 
+knocked you out. You try to get up and then you notice that the cell doors are 
+open. OK, let\'s do this! You step into the unknown... 
 
-You come to an empty room lit by torches. There are two doors... which one is 
-it going to be? Left or right?
+You come to an empty room consisting of doors on each side lit by torches.
 """)
 
+def gameRules()
+    print(f"""
+                GAME RULES
+============================================
+
+
+=============================================
+""")
