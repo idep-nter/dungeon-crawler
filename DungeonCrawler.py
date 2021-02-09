@@ -78,28 +78,34 @@ class Player(Creature):
         print(i for i in self.inventory)
 
     def equipItem(self, item):
-        try:
+        while True:
             if item not in self.inventory:
-                raise ValueError
+                print(f'{item} not in the inventory!')
+                break
             if not self.weightCheck(item):
-                raise ValueError
+                print('You weight too much!')
+                break
             if item == Weapon:
                 if not self.handCheck(item):
-                    raise ValueError
+                    print(f'Cannot equip!')
+                    break
                 if self.weapon:
                     self.unequipItem(item)
                 self.weapon = item
                 self.currentWeight += item.weight
                 self.dps += item.dps
                 self.critChance += item.critChance
+                break
             elif item == Shield:
                 if not self.handCheck(item):
-                    raise ValueError
+                    print(f'Cannot equip!')
+                    break
                 if self.shield:
                     self.unequipItem(item)
                 self.shield = item
                 self.currentWeight += item.weight
                 self.armorValue += item.armorValue
+                break
             elif item == Armor:
                 if self.armor:
                     self.unequipItem(item)
@@ -107,6 +113,7 @@ class Player(Creature):
                 self.currentWeight += item.weight
                 self.armorValue += item.armorValue
                 self.evasion += item.evasion
+                break
             elif item == Ring:
                 if self.ring:
                     self.unequipItem(item)
@@ -116,11 +123,8 @@ class Player(Creature):
                 self.armorValue += item.armorValue
                 self.evasion += item.evasion
                 self.critChance += item.critChance
+                break
             self.inventory.remove(item)
-
-        # add different messages for different problems
-        except ValueError:
-            print(f'{item} not in the inventory or check hands or weight!')
 
     def unequipItem(self, item):
         try:
@@ -272,27 +276,19 @@ class Chest:
             player.currentHealth -= random.randint(10, 30)
 
 
-"""
-l1Map = {'s1' : lesserShade, 's2' : vileBat, 's3' : None, 's4' : chest,
-         's5' : rat, 's6' : chest, 's7' : zombie, 's8' : vileBat,
-         's9' : chest, 's10' : skeletonWarrior, 's11' : shrine, 's12' : chest,
-         's13' : rat, 's14' : giantSpider, 's15' : lesserShade,
-         's16' : darkKnight}
-"""
 class Level(list): # or dict?
 
     def __str__(self):
-        return "\n".join(" ".join(row) for row in self)
+        return "\n".join(' '.join(row) for row in self)
 
 
 class Game(): # need to integrate dictionary of objects and game settings
-
-    markerX = "X"
-    markerO = "O"
-    ctrls = ["left", None, "right", "up", None, "down"]
+    markerX = 'X'
+    markerO = 'O'
+    ctrls = ['left', None, 'right', 'up', None, 'down']
     exit = 'stop'
     start = [0, 3]
-    default = [["?"] * 4 for _ in range(4)]
+    default = [['?'] * 4 for _ in range(4)]
 
     def __init__(self):
         self.flag = True
@@ -308,7 +304,7 @@ class Game(): # need to integrate dictionary of objects and game settings
             self.level[py][px] = Game.markerO
             self.level[cy][cx] = Game.markerX
         else:
-            print("Please enter a proper direction.")
+            print('Please enter a proper direction.')
             self.currPos = self.prevPos[:]
             self.movePlayer()
 
@@ -319,7 +315,7 @@ class Game(): # need to integrate dictionary of objects and game settings
         gameRules()
         while self.flag:
             print(str(self.level))
-            ctrl = input("Which way would you like to go?").lower()
+            ctrl = input('Which way would you like to go?').lower()
             if ctrl in Game.ctrls:
                 d = Game.ctrls.index(ctrl)
                 self.prevPos = self.currPos[:]
@@ -328,7 +324,7 @@ class Game(): # need to integrate dictionary of objects and game settings
             elif ctrl == Game.exit:
                 self.flag = False
             else:
-                print("Please enter a proper direction.")
+                print('Please enter a proper direction.')
 
 
 dagger = Weapon('Dagger', 'dagger', 'common', 3, 2, 'one hand', [3, 7], 0.2)
@@ -398,6 +394,12 @@ darkKnight = Boss('Dark Knight', 80, [10, 15], 50, 0.05, 0.1, shield=True)
 shrine = Shrine()
 chest = Chest(items)
 
+l1 = {'s1' : lesserShade, 's2' : vileBat, 's3' : None, 's4' : chest,
+         's5' : rat, 's6' : chest, 's7' : zombie, 's8' : vileBat,
+         's9' : chest, 's10' : skeletonWarrior, 's11' : shrine, 's12' : chest,
+         's13' : rat, 's14' : giantSpider, 's15' : lesserShade,
+         's16' : darkKnight}
+
 def intro1():
     print("""
 You wake up in the darkness. Your head hurts like some troll hit it with a huge 
@@ -415,7 +417,7 @@ You come to an empty room consisting of doors on each side lit by torches.
 """)
 
 def gameRules()
-    print(f"""
+    print("""
                 GAME RULES
 ============================================
 
