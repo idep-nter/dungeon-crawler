@@ -210,6 +210,11 @@ class Item:
         self.value = value
         self.weight = weight
 
+    def itemView(self): # mb not showing all attributes
+        attrs = vars(Item)
+        for key, value in attrs.items():
+            print(f'{key} = {value}')
+
 
 class Weapon(Item):
     def __init__(self, name, type, rarity, value, weight, hand, dps,
@@ -372,9 +377,10 @@ class Game():
                         self.flag = False
                     time.sleep(1)
 
-    def command(self, player):
+    def command(self, player, items):
         eq = re.compile(r'equip (\w)+')
         uneq = re.compile(r'unequip (\w)+')
+        view = re.compile(r'view (\w)+')
         while True:
             try:
                 a = input('What\'s your action?').lower()
@@ -394,6 +400,11 @@ class Game():
                     mo = uneq.search(a)
                     item = mo.group(1)
                     player.unequipItem(item)
+                elif a == view:
+                    mo = uneq.search(a)
+                    item = mo.group(1)
+                    item = items[item]
+                    item.itemView()
                 elif a == 'drink':
                     player.drinkPotion()
                 elif a == Game.exit:
@@ -534,6 +545,7 @@ char               shows your statistics and equiped gear
 inv                shows your inventory 
 equip >item<       equips item
 unequip >item<     unequips item
+view >item<        shows attributes of the item
 drink              drink potion to regain health
 quit               exit game       
 """)
