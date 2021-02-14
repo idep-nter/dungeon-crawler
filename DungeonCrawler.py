@@ -333,41 +333,40 @@ class Game(): # add show map!
                   'hold? You shiver with excitement as you opening it...')
             object.open(player, items)
         elif object == Monster:
-            move = input(f'There is a {object.name}! Are you ready to fight? ')
-            if move.lower() == 'yes':
-                while True:
-                    command(player)
+            print(f'Damn, you see a {object.name}!')
+            while True:
+                command(player)
+                time.sleep(1)
+                player.attack(object)
+                if object.death():
+                    object.itemDrop(player, items)
+                    object.dropGold(player)
+                    break
+                else:
                     time.sleep(1)
-                    player.attack(object)
-                    if object.death():
-                        object.itemDrop(player, items)
-                        object.dropGold(player)
-                        break
-                    else:
-                        time.sleep(1)
-                        object.attack(player)
-                        if player.death():
-                            print('YOU DIED')
-                            self.flag = False
-                        time.sleep(1)
+                    object.attack(player)
+                    if player.death():
+                        print('YOU DIED')
+                        self.flag = False
+                    time.sleep(1)
         elif object == Boss:
             print(f'Damn, you see a {object.name}! He looks tough!)
-                while True:
-                    command(player)
+            while True:
+                command(player)
+                time.sleep(1)
+                player.attack(object)
+                if object.death():
+                    object.itemDrop(player, items)
+                    object.dropGold(player)
+                    print('LEVEL CLEARED')
+                    self.flag = False
+                else:
                     time.sleep(1)
-                    player.attack(object)
-                    if object.death():
-                        object.itemDrop(player, items)
-                        object.dropGold(player)
-                        print('LEVEL CLEARED')
+                    object.attack(player)
+                    if player.death():
+                        print('YOU DIED')
                         self.flag = False
-                    else:
-                        time.sleep(1)
-                        object.attack(player)
-                        if player.death():
-                            print('YOU DIED')
-                            self.flag = False
-                        time.sleep(1)
+                    time.sleep(1)
 
     def command(self, player):
         reg = re.compile(r'(un)?equip (\w)+')
