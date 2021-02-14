@@ -520,7 +520,7 @@ The dungeon you want to escape from consists of several rooms which are filled
 with objects and monsters. At the start and after clearing each room you will
 be asked which way do you want to continue. If you encounter a monster you will
 be given time to prepare e.g. refill health, switch gear etc. You can also do it 
-the same after each round.
+after each round.
 
 The game ends when you defeat the boss of the level or die trying... 
 ================================================================================
