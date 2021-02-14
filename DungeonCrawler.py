@@ -27,7 +27,7 @@ class Creature:
         target.currentHealth -= attack
 
     def death(self):
-         return True if self.currentHealth < 0 else False
+        return True if self.currentHealth < 0 else False
 
     def itemDrop(self, player, items):
         if self == Boss:
@@ -289,7 +289,7 @@ class Level(list):
         return "\n".join(' '.join(row) for row in self)
 
 
-class Game(): # add show map!
+class Game():
     markerX = 'X'
     markerO = 'O'
     ctrls = ['left', None, 'right', 'up', None, 'down']
@@ -328,19 +328,22 @@ class Game(): # add show map!
             print('You see some kind of shrine before you and suddenly feel '
                   'strength coming back to your body.')
             object.heal(player)
+            self.oLevel[cy][cx] = None
         elif object == Chest:
             print('You see a wooden chest before you. What treasures does it '
                   'hold? You shiver with excitement as you opening it...')
             object.open(player, items)
+            self.oLevel[cy][cx] = None
         elif object == Monster:
             print(f'Damn, you see a {object.name}!')
             while True:
-                command(player)
+                self.command(player)
                 time.sleep(1)
                 player.attack(object)
                 if object.death():
                     object.itemDrop(player, items)
                     object.dropGold(player)
+                    self.oLevel[cy][cx] = None
                     break
                 else:
                     time.sleep(1)
@@ -350,9 +353,9 @@ class Game(): # add show map!
                         self.flag = False
                     time.sleep(1)
         elif object == Boss:
-            print(f'Damn, you see a {object.name}! He looks tough!)
+            print(f'Damn, you see a {object.name}! He looks tough!')
             while True:
-                command(player)
+                self.command(player)
                 time.sleep(1)
                 player.attack(object)
                 if object.death():
@@ -373,7 +376,7 @@ class Game(): # add show map!
         uneq = re.compile(r'unequip (\w)+')
         while True:
             try:
-                a = input('What\'s your action?')
+                a = input('What\'s your action?').lower()
                 if a == 'attack':
                     break
                 if a == 'help':
@@ -392,7 +395,7 @@ class Game(): # add show map!
                     player.unequipItem(item)
                 elif a == 'drink':
                     player.drinkPotion()
-                elif a == 'quit':
+                elif a == Game.exit:
                     self.flag = False
                 else:
                     raise ValueError
@@ -508,7 +511,7 @@ open. OK, let\'s do this! You step into the unknown...
 You come to an empty room consisting of doors on each side lit by torches.
 """)
 
-def gameRules()
+def gameRules():
     print("""
                 GAME RULES
 ============================================
@@ -517,7 +520,7 @@ def gameRules()
 =============================================
 """)
 
-def help()
+def help():
     print("""
 COMMANDS:
 attack             attack monster
