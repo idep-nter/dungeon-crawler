@@ -1,4 +1,6 @@
 import random
+import time
+import re
 
 
 class Creature:
@@ -21,6 +23,7 @@ class Creature:
         if target.shield:
             attack = (attack / 100) * 70
         attack = attack / (1 + (target.armorValue / 100))
+        print(f'{target.name} was hit by {attack}!')
         target.currentHealth -= attack
 
     def death(self):
@@ -29,6 +32,7 @@ class Creature:
     def itemDrop(self, player, items):
         if self == Boss:
             item = random.choice(items['rare'])
+            print(f'You have found {item}!')
             player.inventory.append(item)
             # global items
             items.remove[item]
@@ -40,6 +44,7 @@ class Creature:
             item = random.choice(items['uncommon'])
         else:
             item = random.choice(items['common'])
+        print(f'You have found {item}!')
         player.inventory.append(item)
         # global items
         items.remove[item]
@@ -49,7 +54,10 @@ class Creature:
             gold = random.randint(50, 100)
         else:
             gold = random.randint(5, 20)
+        print(f'You have found {gold} gold!')
         player.gold += gold
+
+    # def specialAbility(self):
 
 
 class Player(Creature):
@@ -95,6 +103,7 @@ class Player(Creature):
                 self.currentWeight += item.weight
                 self.dps += item.dps
                 self.critChance += item.critChance
+                self.inventory.remove(item)
                 break
             elif item == Shield:
                 if not self.handCheck(item):
@@ -105,6 +114,7 @@ class Player(Creature):
                 self.shield = item
                 self.currentWeight += item.weight
                 self.armorValue += item.armorValue
+                self.inventory.remove(item)
                 break
             elif item == Armor:
                 if self.armor:
@@ -113,6 +123,7 @@ class Player(Creature):
                 self.currentWeight += item.weight
                 self.armorValue += item.armorValue
                 self.evasion += item.evasion
+                self.inventory.remove(item)
                 break
             elif item == Ring:
                 if self.ring:
@@ -123,12 +134,12 @@ class Player(Creature):
                 self.armorValue += item.armorValue
                 self.evasion += item.evasion
                 self.critChance += item.critChance
+                self.inventory.remove(item)
                 break
-            self.inventory.remove(item)
 
     def unequipItem(self, item):
         try:
-            if item not in self.inventory:
+            if item
                 raise ValueError
             if item == Weapon:
                 self.weapon = None
@@ -185,15 +196,12 @@ class Monster(Creature):
         super().__init__(name, currentHealth, dps, armorValue, evasion,
                          critChance, shield)
 
-    # def specialAbility(self)
 
 class Boss(Creature):
     def __init__(self, name, currentHealth, dps, armorValue, evasion,
                  critChance, shield=None):
         super().__init__(name, currentHealth, dps, armorValue, evasion,
                          critChance, shield)
-
-    # def specialAbility(self):
 
 
 class Item:
@@ -275,24 +283,29 @@ class Chest:
         if random.random() < 0.1:
             player.currentHealth -= random.randint(10, 30)
 
-
-class Level(list): # or dict?
+class Level(list):
 
     def __str__(self):
         return "\n".join(' '.join(row) for row in self)
 
 
-class Game(): # need to integrate dictionary of objects and game settings
+class Game(): # add show map!
     markerX = 'X'
     markerO = 'O'
     ctrls = ['left', None, 'right', 'up', None, 'down']
-    exit = 'stop'
+    exit = 'quit'
     start = [0, 3]
-    default = [['?'] * 4 for _ in range(4)]
+    default = [['?'] * 4 for i in range(4)]
+
+    # guessing - need to somehow access this
+    global map
+    global items
+
 
     def __init__(self):
         self.flag = True
         self.level = Level(Game.default)
+        self.oLevel = Level(Game.map)
         self.prevPos = Game.start[:]
         self.currPos = Game.start[:]
         self.movePlayer()
@@ -308,9 +321,89 @@ class Game(): # need to integrate dictionary of objects and game settings
             self.currPos = self.prevPos[:]
             self.movePlayer()
 
+    def action(self, player, items):
+        cx, cy = self.currPos
+        object = self.oLevel[cy][cx]
+        if object == Shrine:
+            print('You see some kind of shrine before you and suddenly feel '
+                  'strength coming back to your body.')
+            object.heal(player)
+        elif object == Chest:
+            print('You see a wooden chest before you. What treasures does it '
+                  'hold? You shiver with excitement as you opening it...')
+            object.open(player, items)
+        elif object == Monster:
+            move = input(f'There is a {object.name}! Are you ready to fight? ')
+            if move.lower() == 'yes':
+                while True:
+                    command(player)
+                    time.sleep(1)
+                    player.attack(object)
+                    if object.death():
+                        object.itemDrop(player, items)
+                        object.dropGold(player)
+                        break
+                    else:
+                        time.sleep(1)
+                        object.attack(player)
+                        if player.death():
+                            print('YOU DIED')
+                            self.flag = False
+                        time.sleep(1)
+        elif object == Boss:
+            print(f'Damn, you see a {object.name}! He looks tough!)
+                while True:
+                    command(player)
+                    time.sleep(1)
+                    player.attack(object)
+                    if object.death():
+                        object.itemDrop(player, items)
+                        object.dropGold(player)
+                        print('LEVEL CLEARED')
+                        self.flag = False
+                    else:
+                        time.sleep(1)
+                        object.attack(player)
+                        if player.death():
+                            print('YOU DIED')
+                            self.flag = False
+                        time.sleep(1)
+
+    def command(self, player):
+        reg = re.compile(r'(un)?equip (\w)+')
+        while True:
+            try:
+                a = input('What\'s your action?')
+                if a == 'attack':
+                    break
+                if a == 'help':
+                    help()
+                elif a == 'char':
+                    player.showChar()
+                elif a == 'inv':
+                    player.showInventory()
+                elif a == reg
+                    mo = reg.search(a)
+                    item = mo.group(2)
+                    player.equipItem(item)
+                elif a == reg
+                    mo = reg.search(a)
+                    item = mo.group(2)
+                    player.unequipItem(item)
+                elif a == 'drink':
+                    player.drinkPotion()
+                elif a == 'quit':
+                    self.flag = False
+                else:
+                    raise ValueError
+            except ValueError:
+                print('Please enter correct command or type \"help\".')
+                continue
+
     def play(self):
         intro1()
         name = input()
+        player = Player(name)
         intro2(name)
         gameRules()
         while self.flag:
@@ -321,6 +414,7 @@ class Game(): # need to integrate dictionary of objects and game settings
                 self.prevPos = self.currPos[:]
                 self.currPos[d > 2] += d - (1 if d < 3 else 4) # need to look at
                 self.movePlayer()
+                self.action(player, items)
             elif ctrl == Game.exit:
                 self.flag = False
             else:
@@ -394,11 +488,9 @@ darkKnight = Boss('Dark Knight', 80, [10, 15], 50, 0.05, 0.1, shield=True)
 shrine = Shrine()
 chest = Chest(items)
 
-l1 = {'s1' : lesserShade, 's2' : vileBat, 's3' : None, 's4' : chest,
-         's5' : rat, 's6' : chest, 's7' : zombie, 's8' : vileBat,
-         's9' : chest, 's10' : skeletonWarrior, 's11' : shrine, 's12' : chest,
-         's13' : rat, 's14' : giantSpider, 's15' : lesserShade,
-         's16' : darkKnight}
+map = [[lesserShade, vileBat, None, chest], [rat, chest, zombie, vileBat],
+       [chest, skeletonWarrior, shrine, chest], [rat, giantSpider, lesserShade,
+                                                 darkKnight]]
 
 def intro1():
     print("""
@@ -423,4 +515,16 @@ def gameRules()
 
 
 =============================================
+""")
+
+def help()
+    print("""
+COMMANDS:
+attack             attack monster
+char               shows your statistics and equiped gear
+inv                shows your inventory 
+equip >item<       equips item
+unequip >item<     unequips item
+drink              drink potion to regain health
+quit               exit game       
 """)
