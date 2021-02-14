@@ -163,7 +163,6 @@ class Player(Creature):
                 self.evasion -= item.evasion
                 self.critChance -= item.critChance
             self.inventory.append(item)
-
         except ValueError:
             print(f'{item} not in the inventory!')
 
@@ -175,7 +174,6 @@ class Player(Creature):
             self.currentHealth += potion.heal
             if self.currentHealth > self.maxHealth:
                 self.currentHealth = self.maxHealth
-
         except ValueError:
             print(f'{potion} not in the inventory!')
 
@@ -252,12 +250,14 @@ class Potion(Item):
         super().__init__(name, rarity, value)
         self.heal = heal
 
+
 class Shrine:
     def __init__(self):
         pass
 
     def heal(self, player):
         player.currentHealth = player.maxHealth
+
 
 class Chest:
     def __init__(self, items):
@@ -282,6 +282,7 @@ class Chest:
     def trap(self, player):
         if random.random() < 0.1:
             player.currentHealth -= random.randint(10, 30)
+
 
 class Level(list):
 
@@ -513,11 +514,16 @@ You come to an empty room consisting of doors on each side lit by torches.
 
 def gameRules():
     print("""
-                GAME RULES
-============================================
+                                GAME RULES
+================================================================================
+The dungeon you want to escape from consists of several rooms which are filled
+with objects and monsters. At the start and after clearing each room you will
+be asked which way do you want to continue. If you encounter a monster you will
+be given time to prepare e.g. refill health, switch gear etc. You can also do it 
+the same after each round.
 
-
-=============================================
+The game ends when you defeat the boss of the level or die trying... 
+================================================================================
 """)
 
 def help():
