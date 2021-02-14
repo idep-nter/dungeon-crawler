@@ -139,7 +139,7 @@ class Player(Creature):
 
     def unequipItem(self, item):
         try:
-            if item
+            if item not in self.inventory:
                 raise ValueError
             if item == Weapon:
                 self.weapon = None
@@ -369,7 +369,8 @@ class Game(): # add show map!
                     time.sleep(1)
 
     def command(self, player):
-        reg = re.compile(r'(un)?equip (\w)+')
+        eq = re.compile(r'equip (\w)+')
+        uneq = re.compile(r'unequip (\w)+')
         while True:
             try:
                 a = input('What\'s your action?')
@@ -381,13 +382,13 @@ class Game(): # add show map!
                     player.showChar()
                 elif a == 'inv':
                     player.showInventory()
-                elif a == reg
-                    mo = reg.search(a)
-                    item = mo.group(2)
+                elif a == eq:
+                    mo = eq.search(a)
+                    item = mo.group(1)
                     player.equipItem(item)
-                elif a == reg
-                    mo = reg.search(a)
-                    item = mo.group(2)
+                elif a == uneq:
+                    mo = uneq.search(a)
+                    item = mo.group(1)
                     player.unequipItem(item)
                 elif a == 'drink':
                     player.drinkPotion()
