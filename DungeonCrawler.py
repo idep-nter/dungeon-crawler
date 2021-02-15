@@ -64,7 +64,7 @@ class Player(Creature):
     def __init__(self, name, maxHealth=100, currentHealth=100,
                  dps=[1, 4], armorValue=0, evasion=0.2, critChance=0.1,
                  maxWeight=100, currentWeight=0, gold=0, weapon=None,
-                 armor=None, ring=None, shield=None):
+                 armor=None, ring1=None, ring2=None, shield=None):
         super().__init__(name, dps, armorValue, shield, evasion, critChance)
         self.maxHealth = maxHealth
         self.currentHealth = currentHealth
@@ -74,7 +74,8 @@ class Player(Creature):
         self.inventory = []
         self.weapon = weapon
         self.armor = armor
-        self.ring = ring
+        self.ring1 = ring1
+        self.ring2 = ring2
         self.shield = shield
 
     def showChar(self):
@@ -98,7 +99,8 @@ class Player(Creature):
                     print(f'Cannot equip!')
                     break
                 if self.weapon:
-                    self.unequipItem(item)
+                    pWeapon = self.weapon
+                    self.unequipItem(pWeapon)
                 self.weapon = item
                 self.currentWeight += item.weight
                 self.dps += item.dps
@@ -110,7 +112,8 @@ class Player(Creature):
                     print(f'Cannot equip!')
                     break
                 if self.shield:
-                    self.unequipItem(item)
+                    pShield = self.shield
+                    self.unequipItem(pShield)
                 self.shield = item
                 self.currentWeight += item.weight
                 self.armorValue += item.armorValue
@@ -118,7 +121,8 @@ class Player(Creature):
                 break
             elif item == Armor:
                 if self.armor:
-                    self.unequipItem(item)
+                    pArmor = self.armor
+                    self.unequipItem(pArmor)
                 self.armor = item
                 self.currentWeight += item.weight
                 self.armorValue += item.armorValue
@@ -126,9 +130,16 @@ class Player(Creature):
                 self.inventory.remove(item)
                 break
             elif item == Ring:
-                if self.ring:
-                    self.unequipItem(item)
-                self.ring = item
+                if self.ring1 and not self.ring2:
+                    self.ring2 = item
+                elif not self.ring1 and self.ring2:
+                    self.ring1 = item
+                elif self.ring1 and self.ring2:
+                    pRing = self.ring1
+                    self.unequipItem(pRing)
+                    self.ring1 = item
+                else:
+                    self.ring1 = item
                 self.maxHealth += item.maxHealth
                 self.dps += item.dps
                 self.armorValue += item.armorValue
@@ -156,7 +167,10 @@ class Player(Creature):
                 self.armorValue -= item.armorValue
                 self.evasion -= item.evasion
             elif item == Ring:
-                self.ring = None
+                if self.ring1 == item:
+                    self.ring1 = None
+                elif self.ring2 == item:
+                    self.ring2 = None
                 self.maxHealth -= item.maxHealth
                 self.dps -= item.dps
                 self.armorValue -= item.armorValue
@@ -170,10 +184,16 @@ class Player(Creature):
         try:
             if potion not in self.inventory:
                 raise ValueError
-            self.inventory.remove(potion)
-            self.currentHealth += potion.heal
+            heal = potion.heal
+            pHealth = self.currentHealth
+            self.currentHealth += heal
             if self.currentHealth > self.maxHealth:
                 self.currentHealth = self.maxHealth
+                heal = self.maxHealth - pHealth
+                print(f'{heal} health healed!')
+            else:
+                print(f'{heal} health healed!')
+            self.inventory.remove(potion)
         except ValueError:
             print(f'{potion} not in the inventory!')
 
@@ -396,10 +416,12 @@ class Game():
                     mo = eq.search(a)
                     item = mo.group(1)
                     player.equipItem(item)
+                    print(f'{item} equiped!')
                 elif a == uneq:
                     mo = uneq.search(a)
                     item = mo.group(1)
                     player.unequipItem(item)
+                    print(f'{item} unequiped!')
                 elif a == view:
                     mo = uneq.search(a)
                     item = mo.group(1)
@@ -473,24 +495,37 @@ leatherArmor = Armor('Leather Armor', 'light armor', 'common', 8, 10, 16, -0.1)
 plateArmor = Armor('Plate Armor', 'heavy armor', 'common', 13, 32, 35, -0.2)
 soulOfTheEast = Armor('Soul of the East', 'light armor', 'uncommon', 29, 11, 28,
                       -0.1)
-twillightIronArmor = Armor('Twillight Iron Armor', 'heavy armor', 'uncommon',
+twilightIronArmor = Armor('Twilight Iron Armor', 'heavy armor', 'uncommon',
                            34, 36, 62, -0.2)
 favorOfPhantoms = Armor('Favor of Phantoms', 'light armor', 'rare', 62, 10, 42,
                         -0.1)
 cryOfTheBerserker = Armor('Cry of the Berserker', 'heavy armor', 'rare', 68, 36,
                           88, -0.2)
+jasperWhisper = Ring('Jasper Whisper', 'uncommon', 12, evasion=0.1)
+lunarShield = Ring('Lunar Shield', 'uncommon', 11, armorValue=15)
+jadeMoon = Ring('Jade Moon', 'uncommon', 15, critChance=0.1)
+emeraldFlame = Ring('Emerald Flame', 'uncommon', 13, dps=[5, 10]) # check
+lavishSpirit = Ring('Lavish Spirit', 'rare', 25, evasion=0.2)
+moltenCore = Ring('Molten Core', 'rare', 22, armorValue=32)
+forsakenPromise = Ring('Forsaken Promise', 'rare', 26, critChance=0.2)
+ancientVigor = Ring('Ancient Vigor', 'rare', 25, dps=[8, 18]) # check
+
 items = {'common': {'weapon': [dagger, axe, longSword, twoHandedSword,
                                twoHandedAxe],
                     'armor': [leatherArmor, plateArmor],
                     'shield': [smallShield, greatShield]},
          'uncommon': {'weapon': [shadowStrike, peaceMaker, oathKeeper,
                                  soulReaper],
-                      'armor': [soulOfTheEast, twillightIronArmor],
-                      'shield': [dawnGuard, heroWarden]},
+                      'armor': [soulOfTheEast, twilightIronArmor],
+                      'shield': [dawnGuard, heroWarden],
+                      'ring' : [jasperWhisper, lunarShield, jadeMoon,
+                                emeraldFlame]},
          'rare': {'weapon': [sinisterCarver, harbinger, blindJustice,
                              stormbringer, eclipse],
                   'armor': [favorOfPhantoms, cryOfTheBerserker],
-                  'shield': [tranquility, theSentry]}
+                  'shield': [tranquility, theSentry],
+                  'ring' : [lavishSpirit, moltenCore, forsakenPromise,
+                            ancientVigor]}
          }
 
 rat = Monster('Rat', 20, [1, 3], 0, 0.1, 0.2)
