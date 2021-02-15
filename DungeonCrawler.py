@@ -26,17 +26,21 @@ class Creature:
         print(f'{target.name} was hit by {attack}!')
         target.currentHealth -= attack
 
-    def death(self):
-        return True if self.currentHealth < 0 else False
+    def death(self, player=None, items=None, potions=None):
+        if self.currentHealth < 0:
+            if self == Boss or self == Monster:
+                self.itemDrop(player, items)
+                self.goldDrop(player)
+                self.potionDrop(player, potions)
+                return True
+            return True
+        return False
 
     def itemDrop(self, player, items):
         if self == Boss:
             item = random.choice(items['rare'])
             print(f'You have found {item}!')
             player.inventory.append(item)
-            # global items
-            items.remove[item]
-
         n = random.random()
         if n < 0.1:
             item = random.choice(items['rare'])
@@ -46,16 +50,29 @@ class Creature:
             item = random.choice(items['common'])
         print(f'You have found {item}!')
         player.inventory.append(item)
-        # global items
-        items.remove[item]
 
-    def dropGold(self, player):
+    def goldDrop(self, player):
         if self == Boss:
             gold = random.randint(50, 100)
         else:
             gold = random.randint(5, 20)
         print(f'You have found {gold} gold!')
         player.gold += gold
+
+    def potionDrop(self, player, potions):
+        if self == Boss:
+            potion = potions['common'][healthPotion]
+            print(f'You have found {potion}!')
+            player.inventory.append(potion)
+        n = random.random()
+        if n < 0.3:
+            potion = potions['common'][healthPotion]
+            print(f'You have found {potion}!')
+            player.inventory.append(potion)
+        elif n < 0.6:
+            potion = potions['common'][smallHealthPotion]
+            print(f'You have found {potion}!')
+            player.inventory.append(potion)
 
     # def specialAbility(self):
 
@@ -285,11 +302,12 @@ class Shrine:
 
 
 class Chest:
-    def __init__(self, items):
-        self.items = items
+    def __init__(self):
+        pass
 
-    def open(self, player, items):
+    def open(self, player, items, potions):
         self.itemFind(player, items)
+        self.potionFind(player, potions)
         self.trap(player)
 
     def itemFind(self, player, items):
@@ -301,8 +319,18 @@ class Chest:
         else:
             item = random.choice(items['common'])
         player.inventory.append(item)
-        # global items
-        items.remove[item]
+        print(f'You have found {item}!')
+
+    def potionFind(self, player, potions):
+        n = random.random()
+        if n < 0.5:
+            potion = potions['common'][healthPotion]
+            print(f'You have found {potion}!')
+            player.inventory.append(potion)
+        else:
+            potion = potions['common'][smallHealthPotion]
+            print(f'You have found {potion}!')
+            player.inventory.append(potion)
 
     def trap(self, player):
         if random.random() < 0.1:
@@ -358,7 +386,7 @@ class Game():
         elif object == Chest:
             print('You see a wooden chest before you. What treasures does it '
                   'hold? You shiver with excitement as you opening it...')
-            object.open(player, items)
+            object.open(player, items, potions)
             self.oLevel[cy][cx] = None
         elif object == Monster:
             print(f'Damn, you see a {object.name}!')
@@ -366,9 +394,8 @@ class Game():
                 self.command(player)
                 time.sleep(1)
                 player.attack(object)
-                if object.death():
-                    object.itemDrop(player, items)
-                    object.dropGold(player)
+                if object.death(player, items, potions):
+                    print(f'{object.name.upper()} DEFEATED!')
                     self.oLevel[cy][cx] = None
                     break
                 else:
@@ -384,10 +411,8 @@ class Game():
                 self.command(player)
                 time.sleep(1)
                 player.attack(object)
-                if object.death():
-                    object.itemDrop(player, items)
-                    object.dropGold(player)
-                    print('LEVEL CLEARED')
+                if object.death(player, items, potions):
+                    print(f'{object.name.upper()} DEFEATED!')
                     self.flag = False
                 else:
                     time.sleep(1)
@@ -449,7 +474,7 @@ class Game():
             if ctrl in Game.ctrls:
                 d = Game.ctrls.index(ctrl)
                 self.prevPos = self.currPos[:]
-                self.currPos[d > 2] += d - (1 if d < 3 else 4) # need to look at
+                self.currPos[d > 2] += d - (1 if d < 3 else 4)
                 self.movePlayer()
                 self.action(player, items)
             elif ctrl == Game.exit:
@@ -509,6 +534,8 @@ lavishSpirit = Ring('Lavish Spirit', 'rare', 25, evasion=0.2)
 moltenCore = Ring('Molten Core', 'rare', 22, armorValue=32)
 forsakenPromise = Ring('Forsaken Promise', 'rare', 26, critChance=0.2)
 ancientVigor = Ring('Ancient Vigor', 'rare', 25, dps=[8, 18]) # check
+smallHealthPotion = Potion('Small Health Potion', 'common', 10, 20)
+healthPotion = Potion('Health Potion', 'common', 20, 40)
 
 items = {'common': {'weapon': [dagger, axe, longSword, twoHandedSword,
                                twoHandedAxe],
@@ -518,15 +545,16 @@ items = {'common': {'weapon': [dagger, axe, longSword, twoHandedSword,
                                  soulReaper],
                       'armor': [soulOfTheEast, twilightIronArmor],
                       'shield': [dawnGuard, heroWarden],
-                      'ring' : [jasperWhisper, lunarShield, jadeMoon,
+                      'ring': [jasperWhisper, lunarShield, jadeMoon,
                                 emeraldFlame]},
          'rare': {'weapon': [sinisterCarver, harbinger, blindJustice,
                              stormbringer, eclipse],
                   'armor': [favorOfPhantoms, cryOfTheBerserker],
                   'shield': [tranquility, theSentry],
-                  'ring' : [lavishSpirit, moltenCore, forsakenPromise,
+                  'ring': [lavishSpirit, moltenCore, forsakenPromise,
                             ancientVigor]}
          }
+potions = {'common': [smallHealthPotion, healthPotion]}
 
 rat = Monster('Rat', 20, [1, 3], 0, 0.1, 0.2)
 vileBat = Monster('Vile Bat', 15, [2, 3], 0, 0.3, 0.2)
