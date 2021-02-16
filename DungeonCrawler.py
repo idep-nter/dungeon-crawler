@@ -26,21 +26,7 @@ class Creature:
         print(f'{target.name} was hit by {attack}!')
         target.currentHealth -= attack
 
-    def death(self, player=None, items=None, potions=None):
-        if self.currentHealth < 0:
-            if self == Boss or self == Monster:
-                self.itemDrop(player, items)
-                self.goldDrop(player)
-                self.potionDrop(player, potions)
-                return True
-            return True
-        return False
-
     def itemDrop(self, player, items):
-        if self == Boss:
-            item = random.choice(items['rare'])
-            print(f'You have found {item}!')
-            player.inventory.append(item)
         n = random.random()
         if n < 0.1:
             item = random.choice(items['rare'])
@@ -51,19 +37,7 @@ class Creature:
         print(f'You have found {item}!')
         player.inventory.append(item)
 
-    def goldDrop(self, player):
-        if self == Boss:
-            gold = random.randint(50, 100)
-        else:
-            gold = random.randint(5, 20)
-        print(f'You have found {gold} gold!')
-        player.gold += gold
-
     def potionDrop(self, player, potions):
-        if self == Boss:
-            potion = potions['common'][healthPotion]
-            print(f'You have found {potion}!')
-            player.inventory.append(potion)
         n = random.random()
         if n < 0.3:
             potion = potions['common'][healthPotion]
@@ -214,11 +188,16 @@ class Player(Creature):
         except ValueError:
             print(f'{potion} not in the inventory!')
 
+    def death(self):
+        return True if self.currentHealth < 0 else False
+
     def handCheck(self, item):
-        if item == Weapon:
-            return False if item.hand == 'two hand' and self.shield else True
-        if item == Shield:
-            return False if self.weapon.hand == 'two hand' else True
+        if item == Greataxe or item == Greatsword and self.shield:
+            return False
+        if item == Shield and self.weapon == Greatsword or self.weapon == \
+                Greataxe:
+            return False
+        return True
 
     def weightCheck(self, item):
         return False if self.currentWeight + item.weight > self.maxWeight else \
@@ -231,12 +210,47 @@ class Monster(Creature):
         super().__init__(name, currentHealth, dps, armorValue, evasion,
                          critChance, shield)
 
+    def goldDrop(self, player):
+        gold = random.randint(5, 20)
+        print(f'You have found {gold} gold!')
+        player.gold += gold
+
+    def death(self, player, items, potions):
+        if self.currentHealth < 0:
+            self.itemDrop(player, items)
+            self.goldDrop(player)
+            self.potionDrop(player, potions)
+            return True
+        return False
 
 class Boss(Creature):
     def __init__(self, name, currentHealth, dps, armorValue, evasion,
                  critChance, shield=None):
         super().__init__(name, currentHealth, dps, armorValue, evasion,
                          critChance, shield)
+
+    def death(self, player, items, potions):
+        if self.currentHealth < 0:
+            self.itemDrop(player, items)
+            self.goldDrop(player)
+            self.potionDrop(player, potions)
+            return True
+        return False
+
+    def itemDrop(self, player, items): # need to checkout override
+        item = random.choice(items['rare'])
+        print(f'You have found {item}!')
+        player.inventory.append(item)
+
+    def goldDrop(self, player):
+        gold = random.randint(50, 100)
+        print(f'You have found {gold} gold!')
+        player.gold += gold
+
+    def potionDrop(self, player, potions):  # need to checkout override
+        potion = potions['common'][healthPotion]
+        print(f'You have found {potion}!')
+        player.inventory.append(potion)
 
 
 class Item:
@@ -254,12 +268,41 @@ class Item:
 
 
 class Weapon(Item):
-    def __init__(self, name, type, rarity, value, weight, hand, dps,
+    def __init__(self, name, type, rarity, value, weight, dps,
                  critChance):
         super().__init__(name, type, rarity, value, weight)
-        self.hand = hand
         self.dps = dps
         self.critChance = critChance
+
+
+class Longsword(Weapon):
+    def __init__(self, name, type, rarity, value, weight, dps,
+                 critChance):
+        super().__init__(name, type, rarity, value, weight, dps, critChance)
+
+
+class Greatsword(Weapon):
+    def __init__(self, name, type, rarity, value, weight, dps,
+                 critChance):
+        super().__init__(name, type, rarity, value, weight, dps, critChance)
+
+
+class Dagger(Weapon):
+    def __init__(self, name, type, rarity, value, weight, dps,
+                 critChance):
+        super().__init__(name, type, rarity, value, weight, dps, critChance)
+
+
+class SmallAxe(Weapon):
+    def __init__(self, name, type, rarity, value, weight, dps,
+                 critChance):
+        super().__init__(name, type, rarity, value, weight, dps, critChance)
+
+
+class Greataxe(Weapon):
+    def __init__(self, name, type, rarity, value, weight, dps,
+                 critChance):
+        super().__init__(name, type, rarity, value, weight, dps, critChance)
 
 
 class Shield(Item):
@@ -269,11 +312,31 @@ class Shield(Item):
         self.evasion = evasion
 
 
+class Greatshield(Shield):
+    def __init__(self, name, type, rarity, value, weight, armorValue, evasion):
+        super().__init__(name, type, rarity, value, weight, armorValue, evasion)
+
+
+class SmallShield(Shield):
+    def __init__(self, name, type, rarity, value, weight, armorValue, evasion):
+        super().__init__(name, type, rarity, value, weight, armorValue, evasion)
+
+
 class Armor(Item):
     def __init__(self, name, type, rarity, value, weight, armorValue, evasion):
         super().__init__(name, type, rarity, value, weight)
         self.armorValue = armorValue
         self.evasion = evasion
+
+
+class LightArmor(Armor):
+    def __init__(self, name, type, rarity, value, weight, armorValue, evasion):
+        super().__init__(name, type, rarity, value, weight, armorValue, evasion)
+
+
+class HeavyArmor(Armor):
+    def __init__(self, name, type, rarity, value, weight, armorValue, evasion):
+        super().__init__(name, type, rarity, value, weight, armorValue, evasion)
 
 
 class Ring(Item):
@@ -483,48 +546,45 @@ class Game():
                 print('Please enter a proper direction.')
 
 
-dagger = Weapon('Dagger', 'dagger', 'common', 3, 2, 'one hand', [3, 7], 0.2)
-axe = Weapon('Axe', 'axe', 'common', 5, 5, 'one hand', [5, 10], 0.1)
-longSword = Weapon('Long Sword', 'long sword', 'common', 5, 4, 'one hand',
-                   [7, 9], 0.05)
-twoHandedSword = Weapon('Two Handed Sword', 'two handed sword', 'common', 8, 8,
-                        'two hand', [11, 15], 0.1)
-twoHandedAxe = Weapon('Two Handed Axe', 'two handed axe', 'common', 9, 10,
-                      'two hand', [10, 17], 0.1)
-shadowStrike = Weapon('Shadow Strike', 'dagger', 'uncommon', 23, 2, 'one hand',
-                      [12, 16], 0.2)
-peaceMaker = Weapon('Peace Maker', 'axe', 'uncommon', 28, 6, 'one hand',
-                    [12, 20], 0.1)
-oathKeeper = Weapon('Oath Keeper', 'long sword', 'uncommon', 26, 4, 'one hand',
-                    [15, 18], 0.05)
-soulReaper = Weapon('Soul Reaper', 'two handed sword', 'uncommon', 35, 10,
-                    'two hand', [35, 40], 0.1)
-rapture = Weapon('Rapture', 'two handed axe', 'uncommon', 37, 11,
-                 'two hand', [31, 44], 0.1)
-sinisterCarver = Weapon('Sinister Carver', 'dagger', 'rare', 50, 2, 'one hand',
-                        [42, 50], 0.2)
-harbinger = Weapon('Harbinger', 'axe', 'rare', 56, 6, 'one hand', [45, 60], 0.1)
-blindJustice = Weapon('Blind Justice', 'long sword', 'rare', 58, 4, 'one hand',
-                      [51, 55], 0.05)
-stormbringer = Weapon('Two Handed Sword', 'two handed sword', 'rare', 72, 12,
-                      'two hand', [72, 79], 0.1)
-eclipse = Weapon('Eclipse', 'two handed axe', 'rare', 78, 12, 'two hand',
-                 [68, 85], 0.1)
-smallShield = Shield('Small Shield', 'small shield', 'common', 4, 5, 5, -0.1)
-greatShield = Shield('Great Shield', 'great shield', 'common', 6, 10, 11, -0.2)
-dawnGuard = Shield('Dawn Guard', 'small shield', 'uncommon', 13, 6, 13, -0.1)
-heroWarden = Shield('Hero Warden', 'great shield', 'uncommon', 17, 12, 19, -0.2)
-tranquility = Shield('Tranquility', 'small shield', 'rare', 28, 5, 22, -0.1)
-theSentry = Shield('The Sentry', 'small shield', 'rare', 36, 13, 32, -0.2)
-leatherArmor = Armor('Leather Armor', 'light armor', 'common', 8, 10, 16, -0.1)
-plateArmor = Armor('Plate Armor', 'heavy armor', 'common', 13, 32, 35, -0.2)
-soulOfTheEast = Armor('Soul of the East', 'light armor', 'uncommon', 29, 11, 28,
+dagger = Dagger('Dagger', 'dagger', 'common', 3, 2, [3, 7], 0.2)
+axe = SmallAxe('Axe', 'small axe', 'common', 5, 5, [5, 10], 0.1)
+longsword = Longsword('Longsword', 'longsword', 'common', 5, 4, [7, 9], 0.05)
+greatsword = Greatsword('Greatsword', 'greatsword', 'common', 8, 8,
+                        [11, 15], 0.1)
+greataxe = Greataxe('Greataxe', 'greataxe', 'common', 9, 10,
+                      [10, 17], 0.1)
+shadowStrike = Dagger('Shadow Strike', 'dagger', 'uncommon', 23, 2, [12, 16],
+                      0.2)
+peaceMaker = SmallAxe('Peace Maker', 'small axe', 'uncommon', 28, 6, [12, 20], 0.1)
+oathKeeper = Longsword('Oath Keeper', 'longsword', 'uncommon', 26, 4, [15, 18],
+                    0.05)
+soulReaper = Greatsword('Soul Reaper', 'greatsword', 'uncommon', 35, 10,
+                    [35, 40], 0.1)
+rapture = Greataxe('Rapture', 'greataxe', 'uncommon', 37, 11,
+                 [31, 44], 0.1)
+sinisterCarver = Dagger('Sinister Carver', 'dagger', 'rare', 50, 2, [42, 50],
+                        0.2)
+harbinger = SmallAxe('Harbinger', 'small axe', 'rare', 56, 6, [45, 60], 0.1)
+blindJustice = Longsword('Blind Justice', 'longsword', 'rare', 58, 4, [51, 55],
+                      0.05)
+stormbringer = Greatsword('Stormbringer', 'greatsword', 'rare', 72, 12,
+                      [72, 79], 0.1)
+eclipse = Greataxe('Eclipse', 'greataxe', 'rare', 78, 12, [68, 85], 0.1)
+smallShield = SmallShield('Small Shield', 'small shield', 'common', 4, 5, 5, -0.1)
+greatshield = Greatshield('Greatshield', 'greatshield', 'common', 6, 10, 11, -0.2)
+dawnGuard = SmallShield('Dawn Guard', 'small shield', 'uncommon', 13, 6, 13, -0.1)
+heroWarden = Greatshield('Hero Warden', 'greatshield', 'uncommon', 17, 12, 19, -0.2)
+tranquility = SmallShield('Tranquility', 'small shield', 'rare', 28, 5, 22, -0.1)
+theSentry = Greatshield('The Sentry', 'greatshield', 'rare', 36, 13, 32, -0.2)
+leatherArmor = LightArmor('Leather Armor', 'light armor', 'common', 8, 10, 16, -0.1)
+plateArmor = HeavyArmor('Plate Armor', 'heavy armor', 'common', 13, 32, 35, -0.2)
+soulOfTheEast = LightArmor('Soul of the East', 'light armor', 'uncommon', 29, 11, 28,
                       -0.1)
-twilightIronArmor = Armor('Twilight Iron Armor', 'heavy armor', 'uncommon',
+twilightIronArmor = HeavyArmor('Twilight Iron Armor', 'heavy armor', 'uncommon',
                            34, 36, 62, -0.2)
-favorOfPhantoms = Armor('Favor of Phantoms', 'light armor', 'rare', 62, 10, 42,
+favorOfPhantoms = LightArmor('Favor of Phantoms', 'light armor', 'rare', 62, 10, 42,
                         -0.1)
-cryOfTheBerserker = Armor('Cry of the Berserker', 'heavy armor', 'rare', 68, 36,
+cryOfTheBerserker = HeavyArmor('Cry of the Berserker', 'heavy armor', 'rare', 68, 36,
                           88, -0.2)
 jasperWhisper = Ring('Jasper Whisper', 'uncommon', 12, evasion=0.1)
 lunarShield = Ring('Lunar Shield', 'uncommon', 11, armorValue=15)
@@ -537,22 +597,22 @@ ancientVigor = Ring('Ancient Vigor', 'rare', 25, dps=[8, 18]) # check
 smallHealthPotion = Potion('Small Health Potion', 'common', 10, 20)
 healthPotion = Potion('Health Potion', 'common', 20, 40)
 
-items = {'common': {'weapon': [dagger, axe, longSword, twoHandedSword,
-                               twoHandedAxe],
+items = {'common': {'weapon': [dagger, axe, longsword, greatsword,
+                               greataxe],
                     'armor': [leatherArmor, plateArmor],
-                    'shield': [smallShield, greatShield]},
+                    'shield': [smallShield, greatshield]},
          'uncommon': {'weapon': [shadowStrike, peaceMaker, oathKeeper,
                                  soulReaper],
                       'armor': [soulOfTheEast, twilightIronArmor],
                       'shield': [dawnGuard, heroWarden],
                       'ring': [jasperWhisper, lunarShield, jadeMoon,
-                                emeraldFlame]},
+                               emeraldFlame]},
          'rare': {'weapon': [sinisterCarver, harbinger, blindJustice,
                              stormbringer, eclipse],
                   'armor': [favorOfPhantoms, cryOfTheBerserker],
                   'shield': [tranquility, theSentry],
                   'ring': [lavishSpirit, moltenCore, forsakenPromise,
-                            ancientVigor]}
+                           ancientVigor]}
          }
 potions = {'common': [smallHealthPotion, healthPotion]}
 
