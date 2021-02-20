@@ -35,18 +35,18 @@ class Creature:
             item = random.choice(items['uncommon'])
         else:
             item = random.choice(items['common'])
-        print(f'You have found {item}!')
+        print(f'You have found {item.name}!')
         player.inventory.append(item)
 
-    def potionDrop(self, player, potions):
+    def potionDrop(self, player):
         n = random.random()
         if n < 0.3:
-            potion = potions['common'][healthPotion]
-            print(f'You have found {potion}!')
+            potion = healthPotion
+            print(f'You have found {potion.name}!')
             player.inventory.append(potion)
         elif n < 0.6:
-            potion = potions['common'][smallHealthPotion]
-            print(f'You have found {potion}!')
+            potion = smallHealthPotion
+            print(f'You have found {potion.name}!')
             player.inventory.append(potion)
 
     # def specialAbility(self):
@@ -237,11 +237,11 @@ class Monster(Creature):
         print(f'You have found {gold} gold!')
         player.gold += gold
 
-    def death(self, player, items, potions):
+    def death(self, player, items):
         if self.currentHealth < 0:
             self.itemDrop(player, items)
             self.goldDrop(player)
-            self.potionDrop(player, potions)
+            self.potionDrop(player)
             return True
         return False
 
@@ -251,17 +251,17 @@ class Boss(Creature):
         super().__init__(name, currentHealth, minDps, maxDps, armorValue,
                          evasion, critChance, shield)
 
-    def death(self, player, items, potions):
+    def death(self, player, items):
         if self.currentHealth < 0:
             self.itemDrop(player, items)
             self.goldDrop(player)
-            self.potionDrop(player, potions)
+            self.potionDrop(player)
             return True
         return False
 
     def itemDrop(self, player, items): # need to checkout override
         item = random.choice(items['rare'])
-        print(f'You have found {item}!')
+        print(f'You have found {item.name}!')
         player.inventory.append(item)
 
     def goldDrop(self, player):
@@ -269,9 +269,9 @@ class Boss(Creature):
         print(f'You have found {gold} gold!')
         player.gold += gold
 
-    def potionDrop(self, player, potions):  # need to checkout override
-        potion = potions['common'][healthPotion]
-        print(f'You have found {potion}!')
+    def potionDrop(self, player):  # need to checkout override
+        potion = healthPotion
+        print(f'You have found {potion.name}!')
         player.inventory.append(potion)
 
 
