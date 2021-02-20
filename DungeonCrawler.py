@@ -340,9 +340,9 @@ class HeavyArmor(Armor):
 
 
 class Ring(Item):
-    def __init__(self, name, rarity, value, maxHealth=None, dps=None,
+    def __init__(self, name, type, rarity, value, maxHealth=None, dps=None,
                  armorValue=None, evasion=None, critChance=None):
-        super().__init__(name, rarity, value)
+        super().__init__(name, type, rarity, value)
         self.maxHealth = maxHealth
         self.dps = dps
         self.armorValue = armorValue
@@ -351,8 +351,8 @@ class Ring(Item):
 
 
 class Potion(Item):
-    def __init__(self, name, rarity, value, heal):
-        super().__init__(name, rarity, value)
+    def __init__(self, name, type, rarity, value, heal):
+        super().__init__(name, type, rarity, value)
         self.heal = heal
 
 
@@ -414,7 +414,7 @@ class Game():
     start = [0, 3]
     default = [['?'] * 4 for i in range(4)]
 
-    # guessing - need to somehow access this
+    # need to somehow access this
     global map
     global items
 
@@ -454,7 +454,7 @@ class Game():
         elif object == Monster:
             print(f'Damn, you see a {object.name}!')
             while True:
-                self.command(player)
+                self.command(player, items)
                 time.sleep(1)
                 player.attack(object)
                 if object.death(player, items, potions):
@@ -471,7 +471,7 @@ class Game():
         elif object == Boss:
             print(f'Damn, you see a {object.name}! He looks tough!')
             while True:
-                self.command(player)
+                self.command(player, items)
                 time.sleep(1)
                 player.attack(object)
                 if object.death(player, items, potions):
@@ -586,16 +586,16 @@ favorOfPhantoms = LightArmor('Favor of Phantoms', 'light armor', 'rare', 62, 10,
                         -0.1)
 cryOfTheBerserker = HeavyArmor('Cry of the Berserker', 'heavy armor', 'rare', 68, 36,
                           88, -0.2)
-jasperWhisper = Ring('Jasper Whisper', 'uncommon', 12, evasion=0.1)
-lunarShield = Ring('Lunar Shield', 'uncommon', 11, armorValue=15)
-jadeMoon = Ring('Jade Moon', 'uncommon', 15, critChance=0.1)
-emeraldFlame = Ring('Emerald Flame', 'uncommon', 13, dps=[5, 10]) # check
-lavishSpirit = Ring('Lavish Spirit', 'rare', 25, evasion=0.2)
-moltenCore = Ring('Molten Core', 'rare', 22, armorValue=32)
-forsakenPromise = Ring('Forsaken Promise', 'rare', 26, critChance=0.2)
-ancientVigor = Ring('Ancient Vigor', 'rare', 25, dps=[8, 18]) # check
-smallHealthPotion = Potion('Small Health Potion', 'common', 10, 20)
-healthPotion = Potion('Health Potion', 'common', 20, 40)
+jasperWhisper = Ring('Jasper Whisper', 'ring', 'uncommon', 12, evasion=0.1)
+lunarShield = Ring('Lunar Shield', 'ring', 'uncommon', 11, armorValue=15)
+jadeMoon = Ring('Jade Moon', 'ring', 'uncommon', 15, critChance=0.1)
+emeraldFlame = Ring('Emerald Flame', 'ring', 'uncommon', 13, dps=[5, 10]) # check
+lavishSpirit = Ring('Lavish Spirit', 'ring', 'rare', 25, evasion=0.2)
+moltenCore = Ring('Molten Core', 'ring', 'rare', 22, armorValue=32)
+forsakenPromise = Ring('Forsaken Promise', 'ring', 'rare', 26, critChance=0.2)
+ancientVigor = Ring('Ancient Vigor', 'ring', 'rare', 25, dps=[8, 18]) # check
+smallHealthPotion = Potion('Small Health Potion', 'potion', 'common', 10, 20)
+healthPotion = Potion('Health Potion', 'potion', 'common', 20, 40)
 
 items = {'common': {'weapon': [dagger, axe, longsword, greatsword,
                                greataxe],
@@ -624,7 +624,7 @@ lesserShade = Monster('Lesser Shade', 10, [2, 6], 0, 0.5, 0.1)
 giantSpider = Monster('Giant Spider', 25, [3, 8], 10, 0.1, 0.1)
 darkKnight = Boss('Dark Knight', 80, [10, 15], 50, 0.05, 0.1, shield=True)
 shrine = Shrine()
-chest = Chest(items)
+chest = Chest()
 
 map = [[lesserShade, vileBat, None, chest], [rat, chest, zombie, vileBat],
        [chest, skeletonWarrior, shrine, chest], [rat, giantSpider, lesserShade,
@@ -672,3 +672,7 @@ view >item<        shows attributes of the item
 drink              drink potion to regain health
 quit               exit game       
 """)
+
+if __name__ == '__main__':
+    game = Game()
+    game.play()
