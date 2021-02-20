@@ -53,11 +53,12 @@ class Creature:
 
 
 class Player(Creature):
-    def __init__(self, name, maxHealth=100, currentHealth=100,
-                 minDps=1, maxDps=4, armorValue=0, evasion=0.2, critChance=0.1,
+    def __init__(self, name, maxHealth=100, currentHealth=100, minDps=1,
+                 maxDps=4, armorValue=0, evasion=0.2, critChance=0.1,
                  maxWeight=100, currentWeight=0, gold=0, weapon=None,
                  armor=None, ring1=None, ring2=None, shield=None):
-        super().__init__(name, minDps, maxDps, armorValue, shield, evasion, critChance)
+        super().__init__(name, currentHealth, minDps, maxDps, armorValue,
+                         evasion, critChance, shield)
         self.maxHealth = maxHealth
         self.currentHealth = currentHealth
         self.maxWeight = maxWeight
@@ -70,7 +71,7 @@ class Player(Creature):
         self.ring2 = ring2
         self.shield = shield
 
-    def showChar(self):
+    def showChar(self): # not showing properly
         attrs = vars(Player)
         for key, value in attrs.items():
             print(f'{key} = {value}')
@@ -79,30 +80,30 @@ class Player(Creature):
         print(i for i in self.inventory)
 
     def equipItem(self, item):
-        while True:
+        try:
             if item not in self.inventory:
                 print(f'{item} not in the inventory!')
-                break
+                raise ValueError
             if not self.weightCheck(item):
                 print('You weight too much!')
-                break
-            if item == Weapon:
+                raise ValueError
+            if isinstance(item, Weapon):
                 if not self.handCheck(item):
                     print(f'Cannot equip!')
-                    break
+                    raise ValueError
                 if self.weapon:
                     pWeapon = self.weapon
                     self.unequipItem(pWeapon)
                 self.weapon = item
                 self.currentWeight += item.weight
-                self.dps += item.dps
+                self.minDps += item.minDps
+                self.maxDps += item.maxDps
                 self.critChance += item.critChance
                 self.inventory.remove(item)
-                break
-            elif item == Shield:
+            elif isinstance(item, Shield):
                 if not self.handCheck(item):
                     print(f'Cannot equip!')
-                    break
+                    raise ValueError
                 if self.shield:
                     pShield = self.shield
                     self.unequipItem(pShield)
@@ -110,8 +111,7 @@ class Player(Creature):
                 self.currentWeight += item.weight
                 self.armorValue += item.armorValue
                 self.inventory.remove(item)
-                break
-            elif item == Armor:
+            elif isinstance(item, Armor):
                 if self.armor:
                     pArmor = self.armor
                     self.unequipItem(pArmor)
@@ -120,8 +120,7 @@ class Player(Creature):
                 self.armorValue += item.armorValue
                 self.evasion += item.evasion
                 self.inventory.remove(item)
-                break
-            elif item == Ring:
+            elif isinstance(item, Ring):
                 if self.ring1 and not self.ring2:
                     self.ring2 = item
                 elif not self.ring1 and self.ring2:
@@ -133,38 +132,42 @@ class Player(Creature):
                 else:
                     self.ring1 = item
                 self.maxHealth += item.maxHealth
-                self.dps += item.dps
+                self.minDps += item.minDps
+                self.maxDps += item.maxDps
                 self.armorValue += item.armorValue
                 self.evasion += item.evasion
                 self.critChance += item.critChance
                 self.inventory.remove(item)
-                break
+        except ValueError:
+            pass
 
     def unequipItem(self, item):
         try:
             if item not in self.inventory:
                 raise ValueError
-            if item == Weapon:
+            if isinstance(item, Weapon):
                 self.weapon = None
                 self.currentWeight -= item.weight
-                self.dps -= item.dps
+                self.minDps -= item.minDps
+                self.maxDps -= item.maxDps
                 self.critChance -= item.critChance
-            elif item == Shield:
+            elif isinstance(item, Shield):
                 self.shield = None
                 self.currentWeight -= item.weight
                 self.armorValue -= item.armorValue
-            elif item == Armor:
+            elif isinstance(item, Armor):
                 self.armor = None
                 self.currentWeight -= item.weight
                 self.armorValue -= item.armorValue
                 self.evasion -= item.evasion
-            elif item == Ring:
+            elif isinstance(item, Ring):
                 if self.ring1 == item:
                     self.ring1 = None
                 elif self.ring2 == item:
                     self.ring2 = None
                 self.maxHealth -= item.maxHealth
-                self.dps -= item.dps
+                self.minDps -= item.minDps
+                self.maxDps -= item.maxDps
                 self.armorValue -= item.armorValue
                 self.evasion -= item.evasion
                 self.critChance -= item.critChance
@@ -172,10 +175,27 @@ class Player(Creature):
         except ValueError:
             print(f'{item} not in the inventory!')
 
-    def drinkPotion(self, potion):
+    def drinkPotion(self): # add potions?
         try:
-            if potion not in self.inventory:
+            if Potion not in self.inventory:
+                print('No potions in the inventory!')
                 raise ValueError
+            elif smallHealthPotion in self.inventory and healthPotion not in \
+                    self.inventory:
+                potion = smallHealthPotion
+            elif healthPotion in self.inventory and smallHealthPotion not in \
+                    self.inventory:
+                potion = healthPotion
+            else:
+                q = input('Which potion do you want to use? Small or '
+                          'big?').lower()
+                if q == 'small':
+                    potion = smallHealthPotion
+                elif q == 'big':
+                    potion = healthPotion
+                else:
+                    print('Please type correct potion size!')
+                    raise ValueError
             heal = potion.heal
             pHealth = self.currentHealth
             self.currentHealth += heal
@@ -187,16 +207,17 @@ class Player(Creature):
                 print(f'{heal} health healed!')
             self.inventory.remove(potion)
         except ValueError:
-            print(f'{potion} not in the inventory!')
+            pass
 
     def death(self):
         return True if self.currentHealth < 0 else False
 
     def handCheck(self, item):
-        if item == Greataxe or item == Greatsword and self.shield:
+        if isinstance(item, Greataxe) or isinstance(item, Greatsword) and \
+                self.shield:
             return False
-        if item == Shield and self.weapon == Greatsword or self.weapon == \
-                Greataxe:
+        if isinstance(item, Shield) and isinstance(self.weapon, Greataxe) or \
+                isinstance(self.weapon, Greatsword):
             return False
         return True
 
@@ -206,10 +227,10 @@ class Player(Creature):
 
 
 class Monster(Creature):
-    def __init__(self, name, currentHealth, dps, armorValue, evasion,
+    def __init__(self, name, currentHealth, minDps, maxDps, armorValue, evasion,
                  critChance, shield=None):
-        super().__init__(name, currentHealth, dps, armorValue, evasion,
-                         critChance, shield)
+        super().__init__(name, currentHealth, minDps, maxDps, armorValue,
+                         evasion, critChance, shield)
 
     def goldDrop(self, player):
         gold = random.randint(5, 20)
@@ -225,10 +246,10 @@ class Monster(Creature):
         return False
 
 class Boss(Creature):
-    def __init__(self, name, currentHealth, dps, armorValue, evasion,
+    def __init__(self, name, currentHealth, minDps, maxDps, armorValue, evasion,
                  critChance, shield=None):
-        super().__init__(name, currentHealth, dps, armorValue, evasion,
-                         critChance, shield)
+        super().__init__(name, currentHealth, minDps, maxDps, armorValue,
+                         evasion, critChance, shield)
 
     def death(self, player, items, potions):
         if self.currentHealth < 0:
@@ -269,41 +290,47 @@ class Item:
 
 
 class Weapon(Item):
-    def __init__(self, name, type, rarity, value, weight, dps,
+    def __init__(self, name, type, rarity, value, weight, minDps, maxDps,
                  critChance):
         super().__init__(name, type, rarity, value, weight)
-        self.dps = dps
+        self.minDps = minDps
+        self.maxDps = maxDps
         self.critChance = critChance
 
 
 class Longsword(Weapon):
-    def __init__(self, name, type, rarity, value, weight, dps,
+    def __init__(self, name, type, rarity, value, weight, minDps, maxDps,
                  critChance):
-        super().__init__(name, type, rarity, value, weight, dps, critChance)
+        super().__init__(name, type, rarity, value, weight, minDps, maxDps,
+                         critChance)
 
 
 class Greatsword(Weapon):
-    def __init__(self, name, type, rarity, value, weight, dps,
+    def __init__(self, name, type, rarity, value, weight, minDps, maxDps,
                  critChance):
-        super().__init__(name, type, rarity, value, weight, dps, critChance)
+        super().__init__(name, type, rarity, value, weight, minDps, maxDps,
+                         critChance)
 
 
 class Dagger(Weapon):
-    def __init__(self, name, type, rarity, value, weight, dps,
+    def __init__(self, name, type, rarity, value, weight, minDps, maxDps,
                  critChance):
-        super().__init__(name, type, rarity, value, weight, dps, critChance)
+        super().__init__(name, type, rarity, value, weight, minDps, maxDps,
+                         critChance)
 
 
 class SmallAxe(Weapon):
-    def __init__(self, name, type, rarity, value, weight, dps,
+    def __init__(self, name, type, rarity, value, weight, minDps, maxDps,
                  critChance):
-        super().__init__(name, type, rarity, value, weight, dps, critChance)
+        super().__init__(name, type, rarity, value, weight, minDps, maxDps,
+                         critChance)
 
 
 class Greataxe(Weapon):
-    def __init__(self, name, type, rarity, value, weight, dps,
+    def __init__(self, name, type, rarity, value, weight, minDps, maxDps,
                  critChance):
-        super().__init__(name, type, rarity, value, weight, dps, critChance)
+        super().__init__(name, type, rarity, value, weight, minDps, maxDps,
+                         critChance)
 
 
 class Shield(Item):
@@ -341,11 +368,13 @@ class HeavyArmor(Armor):
 
 
 class Ring(Item):
-    def __init__(self, name, type, rarity, value, maxHealth=None, dps=None,
-                 armorValue=None, evasion=None, critChance=None):
+    def __init__(self, name, type, rarity, value, maxHealth=None,
+                 minDps=None, maxDps=None, armorValue=None, evasion=None,
+                 critChance=None):
         super().__init__(name, type, rarity, value)
         self.maxHealth = maxHealth
-        self.dps = dps
+        self.minDps = minDps
+        self.maxDps = maxDps
         self.armorValue = armorValue
         self.evasion = evasion
         self.critChance = critChance
@@ -369,9 +398,9 @@ class Chest:
     def __init__(self):
         pass
 
-    def open(self, player, items, potions):
+    def open(self, player, items):
         self.itemFind(player, items)
-        self.potionFind(player, potions)
+        self.potionFind(player)
         self.trap(player)
 
     def itemFind(self, player, items):
@@ -383,17 +412,17 @@ class Chest:
         else:
             item = random.choice(items['common'])
         player.inventory.append(item)
-        print(f'You have found {item}!')
+        print(f'You have found {item.name}!')
 
-    def potionFind(self, player, potions):
+    def potionFind(self, player): # add potions?
         n = random.random()
         if n < 0.5:
-            potion = potions['common'][healthPotion]
-            print(f'You have found {potion}!')
+            potion = healthPotion
+            print(f'You have found {potion.name}!')
             player.inventory.append(potion)
         else:
-            potion = potions['common'][smallHealthPotion]
-            print(f'You have found {potion}!')
+            potion = smallHealthPotion
+            print(f'You have found {potion.name}!')
             player.inventory.append(potion)
 
     def trap(self, player):
@@ -414,12 +443,6 @@ class Game:
     exit = 'quit'
     start = [2, 0]
     default = [['?'] * 4 for i in range(4)]
-
-    """
-    # need to somehow access this
-    global map
-    global items
-    """
 
     def __init__(self, map):
         self.flag = True
@@ -451,7 +474,7 @@ class Game:
         elif isinstance(object, Chest):
             print('You see a wooden chest before you. What treasures does it '
                   'hold? You shiver with excitement as you opening it...')
-            object.open(player, items, potions)
+            object.open(player, items)
             self.oLevel[cy][cx] = None
         elif isinstance(object, Monster):
             print(f'Damn, you see a {object.name}!')
@@ -549,30 +572,28 @@ class Game:
                 print('Please enter a proper direction.')
 
 
-dagger = Dagger('Dagger', 'dagger', 'common', 3, 2, [3, 7], 0.2)
-axe = SmallAxe('Axe', 'small axe', 'common', 5, 5, [5, 10], 0.1)
-longsword = Longsword('Longsword', 'longsword', 'common', 5, 4, [7, 9], 0.05)
+dagger = Dagger('Dagger', 'dagger', 'common', 3, 2, 3, 7, 0.2)
+axe = SmallAxe('Axe', 'small axe', 'common', 5, 5, 5, 10, 0.1)
+longsword = Longsword('Longsword', 'longsword', 'common', 5, 4, 7, 9, 0.05)
 greatsword = Greatsword('Greatsword', 'greatsword', 'common', 8, 8,
-                        [11, 15], 0.1)
+                        11, 15, 0.1)
 greataxe = Greataxe('Greataxe', 'greataxe', 'common', 9, 10,
-                      [10, 17], 0.1)
-shadowStrike = Dagger('Shadow Strike', 'dagger', 'uncommon', 23, 2, [12, 16],
+                      10, 17, 0.1)
+shadowStrike = Dagger('Shadow Strike', 'dagger', 'uncommon', 23, 2, 12, 16,
                       0.2)
-peaceMaker = SmallAxe('Peace Maker', 'small axe', 'uncommon', 28, 6, [12, 20], 0.1)
-oathKeeper = Longsword('Oath Keeper', 'longsword', 'uncommon', 26, 4, [15, 18],
+peaceMaker = SmallAxe('Peace Maker', 'small axe', 'uncommon', 28, 6, 12, 20, 0.1)
+oathKeeper = Longsword('Oath Keeper', 'longsword', 'uncommon', 26, 4, 15, 18,
                     0.05)
 soulReaper = Greatsword('Soul Reaper', 'greatsword', 'uncommon', 35, 10,
-                    [35, 40], 0.1)
-rapture = Greataxe('Rapture', 'greataxe', 'uncommon', 37, 11,
-                 [31, 44], 0.1)
-sinisterCarver = Dagger('Sinister Carver', 'dagger', 'rare', 50, 2, [42, 50],
-                        0.2)
-harbinger = SmallAxe('Harbinger', 'small axe', 'rare', 56, 6, [45, 60], 0.1)
-blindJustice = Longsword('Blind Justice', 'longsword', 'rare', 58, 4, [51, 55],
+                    35, 40, 0.1)
+rapture = Greataxe('Rapture', 'greataxe', 'uncommon', 37, 11, 31, 44, 0.1)
+sinisterCarver = Dagger('Sinister Carver', 'dagger', 'rare', 50, 2, 42, 50, 0.2)
+harbinger = SmallAxe('Harbinger', 'small axe', 'rare', 56, 6, 45, 60, 0.1)
+blindJustice = Longsword('Blind Justice', 'longsword', 'rare', 58, 4, 51, 55,
                       0.05)
 stormbringer = Greatsword('Stormbringer', 'greatsword', 'rare', 72, 12,
-                      [72, 79], 0.1)
-eclipse = Greataxe('Eclipse', 'greataxe', 'rare', 78, 12, [68, 85], 0.1)
+                      72, 79, 0.1)
+eclipse = Greataxe('Eclipse', 'greataxe', 'rare', 78, 12, 68, 85, 0.1)
 smallShield = SmallShield('Small Shield', 'small shield', 'common', 4, 5, 5, -0.1)
 greatshield = Greatshield('Greatshield', 'greatshield', 'common', 6, 10, 11, -0.2)
 dawnGuard = SmallShield('Dawn Guard', 'small shield', 'uncommon', 13, 6, 13, -0.1)
@@ -592,11 +613,12 @@ cryOfTheBerserker = HeavyArmor('Cry of the Berserker', 'heavy armor', 'rare', 68
 jasperWhisper = Ring('Jasper Whisper', 'ring', 'uncommon', 12, evasion=0.1)
 lunarShield = Ring('Lunar Shield', 'ring', 'uncommon', 11, armorValue=15)
 jadeMoon = Ring('Jade Moon', 'ring', 'uncommon', 15, critChance=0.1)
-emeraldFlame = Ring('Emerald Flame', 'ring', 'uncommon', 13, dps=[5, 10]) # check
+emeraldFlame = Ring('Emerald Flame', 'ring', 'uncommon', 13, minDps=5,
+                    maxDps=10)
 lavishSpirit = Ring('Lavish Spirit', 'ring', 'rare', 25, evasion=0.2)
 moltenCore = Ring('Molten Core', 'ring', 'rare', 22, armorValue=32)
 forsakenPromise = Ring('Forsaken Promise', 'ring', 'rare', 26, critChance=0.2)
-ancientVigor = Ring('Ancient Vigor', 'ring', 'rare', 25, dps=[8, 18]) # check
+ancientVigor = Ring('Ancient Vigor', 'ring', 'rare', 25, minDps=11, maxDps=18)
 smallHealthPotion = Potion('Small Health Potion', 'potion', 'common', 10, 20)
 healthPotion = Potion('Health Potion', 'potion', 'common', 20, 40)
 
@@ -619,13 +641,13 @@ items = {'common': {'weapon': [dagger, axe, longsword, greatsword,
          }
 potions = {'common': [smallHealthPotion, healthPotion]}
 
-rat = Monster('Rat', 20, [1, 3], 0, 0.1, 0.2)
-vileBat = Monster('Vile Bat', 15, [2, 3], 0, 0.3, 0.2)
-zombie = Monster('Zombie', 30, [3, 5], 5, 0, 0.05)
-skeletonWarrior = Monster('Skeleton Warrior', 25, [3, 7], 20, 0.1, 0.1)
-lesserShade = Monster('Lesser Shade', 10, [2, 6], 0, 0.5, 0.1)
-giantSpider = Monster('Giant Spider', 25, [3, 8], 10, 0.1, 0.1)
-darkKnight = Boss('Dark Knight', 80, [10, 15], 50, 0.05, 0.1, shield=True)
+rat = Monster('Rat', 20, 1, 3, 0, 0.1, 0.2)
+vileBat = Monster('Vile Bat', 15, 2, 3, 0, 0.3, 0.2)
+zombie = Monster('Zombie', 30, 3, 5, 5, 0, 0.05)
+skeletonWarrior = Monster('Skeleton Warrior', 25, 3, 7, 20, 0.1, 0.1)
+lesserShade = Monster('Lesser Shade', 10, 2, 6, 0, 0.5, 0.1)
+giantSpider = Monster('Giant Spider', 25, 3, 8, 10, 0.1, 0.1)
+darkKnight = Boss('Dark Knight', 80, 10, 15, 50, 0.05, 0.1, shield=True)
 shrine = Shrine()
 chest = Chest()
 
