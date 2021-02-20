@@ -4,18 +4,19 @@ import re
 
 
 class Creature:
-    def __init__(self, name, currentHealth, dps, armorValue,
+    def __init__(self, name, currentHealth, minDps, maxDps, armorValue,
                  evasion, critChance, shield=None):
         self.name = name
         self.currentHealth = currentHealth
-        self.dps = dps
+        self.minDps = minDps
+        self.maxDps = maxDps
         self.armorValue = armorValue
         self.evasion = evasion
         self.critChance = critChance
         self.shield = shield
 
     def attack(self, target):
-        attack = random.choice(range(self.dps[0], self.dps[1] + 1))
+        attack = random.randint(self.maxDps, self.minDps)
         if random.random() < target.evasion:
             return False
         if random.random() < self.critChance:
@@ -53,10 +54,10 @@ class Creature:
 
 class Player(Creature):
     def __init__(self, name, maxHealth=100, currentHealth=100,
-                 dps=[1, 4], armorValue=0, evasion=0.2, critChance=0.1,
+                 minDps=1, maxDps=4, armorValue=0, evasion=0.2, critChance=0.1,
                  maxWeight=100, currentWeight=0, gold=0, weapon=None,
                  armor=None, ring1=None, ring2=None, shield=None):
-        super().__init__(name, dps, armorValue, shield, evasion, critChance)
+        super().__init__(name, minDps, maxDps, armorValue, shield, evasion, critChance)
         self.maxHealth = maxHealth
         self.currentHealth = currentHealth
         self.maxWeight = maxWeight
@@ -406,23 +407,24 @@ class Level(list):
         return "\n".join(' '.join(row) for row in self)
 
 
-class Game():
+class Game:
     markerX = 'X'
     markerO = 'O'
     ctrls = ['left', None, 'right', 'up', None, 'down']
     exit = 'quit'
-    start = [0, 3]
+    start = [2, 0]
     default = [['?'] * 4 for i in range(4)]
 
+    """
     # need to somehow access this
     global map
     global items
+    """
 
-
-    def __init__(self):
+    def __init__(self, map):
         self.flag = True
         self.level = Level(Game.default)
-        self.oLevel = Level(Game.map)
+        self.oLevel = Level(map)
         self.prevPos = Game.start[:]
         self.currPos = Game.start[:]
         self.movePlayer()
@@ -441,17 +443,17 @@ class Game():
     def action(self, player, items):
         cx, cy = self.currPos
         object = self.oLevel[cy][cx]
-        if object == Shrine:
+        if isinstance(object, Shrine):
             print('You see some kind of shrine before you and suddenly feel '
                   'strength coming back to your body.')
             object.heal(player)
             self.oLevel[cy][cx] = None
-        elif object == Chest:
+        elif isinstance(object, Chest):
             print('You see a wooden chest before you. What treasures does it '
                   'hold? You shiver with excitement as you opening it...')
             object.open(player, items, potions)
             self.oLevel[cy][cx] = None
-        elif object == Monster:
+        elif isinstance(object, Monster):
             print(f'Damn, you see a {object.name}!')
             while True:
                 self.command(player, items)
@@ -468,7 +470,7 @@ class Game():
                         print('YOU DIED')
                         self.flag = False
                     time.sleep(1)
-        elif object == Boss:
+        elif isinstance(object, Boss):
             print(f'Damn, you see a {object.name}! He looks tough!')
             while True:
                 self.command(player, items)
@@ -539,6 +541,7 @@ class Game():
                 self.prevPos = self.currPos[:]
                 self.currPos[d > 2] += d - (1 if d < 3 else 4)
                 self.movePlayer()
+                # breakpoint()
                 self.action(player, items)
             elif ctrl == Game.exit:
                 self.flag = False
@@ -674,5 +677,5 @@ quit               exit game
 """)
 
 if __name__ == '__main__':
-    game = Game()
+    game = Game(map)
     game.play()
