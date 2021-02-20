@@ -16,7 +16,7 @@ class Creature:
         self.shield = shield
 
     def attack(self, target):
-        attack = random.randint(self.maxDps, self.minDps)
+        attack = random.randint(self.minDps, self.maxDps)
         if random.random() < target.evasion:
             return False
         if random.random() < self.critChance:
