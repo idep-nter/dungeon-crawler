@@ -149,41 +149,47 @@ class Player(Creature):
             pass
 
     def unequipItem(self, item):
-        try:
-            if item not in self.inventory:
-                raise ValueError
-            if isinstance(item, Weapon):
+            if item == self.weapon:
                 self.weapon = None
                 self.currentWeight -= item.weight
                 self.minDps -= item.minDps
                 self.maxDps -= item.maxDps
                 self.critChance -= item.critChance
-            elif isinstance(item, Shield):
+                self.inventory.append(item)
+            elif item == self.shield:
                 self.shield = None
                 self.currentWeight -= item.weight
                 self.armorValue -= item.armorValue
-            elif isinstance(item, Armor):
+                self.inventory.append(item)
+            elif item == self.armor:
                 self.armor = None
                 self.currentWeight -= item.weight
                 self.armorValue -= item.armorValue
                 self.evasion -= item.evasion
-            elif isinstance(item, Ring):
-                if self.ring1 == item:
-                    self.ring1 = None
-                elif self.ring2 == item:
-                    self.ring2 = None
+                self.inventory.append(item)
+            elif item == self.ring1:
+                self.ring1 = None
                 self.maxHealth -= item.maxHealth
                 self.minDps -= item.minDps
                 self.maxDps -= item.maxDps
                 self.armorValue -= item.armorValue
                 self.evasion -= item.evasion
                 self.critChance -= item.critChance
-            self.inventory.append(item)
-        except ValueError:
-            print(f'{item} not in the inventory!')
+                self.inventory.append(item)
+            elif item == self.ring2:
+                self.ring2 = None
+                self.maxHealth -= item.maxHealth
+                self.minDps -= item.minDps
+                self.maxDps -= item.maxDps
+                self.armorValue -= item.armorValue
+                self.evasion -= item.evasion
+                self.critChance -= item.critChance
+                self.inventory.append(item)
+            else:
+                print('Wrong item!')
 
     def drinkPotion(self):
-        potion = self.potionChoice
+        potion = self.potionChoice()
         heal = potion.heal
         pHealth = self.currentHealth
         self.currentHealth += heal
@@ -447,7 +453,9 @@ class Chest:
 
     def trap(self, player):
         if random.random() < 0.1:
-            player.currentHealth -= random.randint(10, 30)
+            dmg = random.randint(10, 30)
+            player.currentHealth -= dmg
+            print(f'There was a trap! You have been hit by {dmg}!')
 
 
 class Level(list):
@@ -538,7 +546,6 @@ class Game:
             time.sleep(1)
 
     def command(self, player):
-        global items
         eq = re.compile(r'equip (\w)+')
         uneq = re.compile(r'unequip (\w)+')
         view = re.compile(r'view (\w)+')
@@ -555,18 +562,21 @@ class Game:
                     player.showInventory()
                 elif a == eq:
                     mo = eq.search(a)
-                    item = mo.group(1)
+                    item = mo.group(1) # kinda problematic - needs to be exact name of the variable
                     player.equipItem(item)
                     print(f'{item} equiped!')
                 elif a == uneq:
                     mo = uneq.search(a)
-                    item = mo.group(1)
+                    item = mo.group(1) # same shit
                     player.unequipItem(item)
                     print(f'{item} unequiped!')
                 elif a == view:
                     mo = uneq.search(a)
-                    item = mo.group(1)
-                    item = items[item]
+                    item = mo.group(1).lower()
+                    if item not in player.inventory:
+                        print(f'{item} not in the inventory!')
+                        raise ValueError
+                    item = player.inventory[item]
                     item.itemView()
                 elif a == 'drink':
                     player.drinkPotion()
@@ -592,7 +602,7 @@ class Game:
                 self.prevPos = self.currPos[:]
                 self.currPos[d > 2] += d - (1 if d < 3 else 4)
                 self.movePlayer()
-                breakpoint()
+                # breakpoint()
                 self.action(player)
             elif ctrl == Game.exit:
                 self.flag = False
@@ -667,7 +677,7 @@ items = {'common': {'weapon': [dagger, axe, longsword, greatsword,
                   'ring': [lavishSpirit, moltenCore, forsakenPromise,
                            ancientVigor]}
          }
-potions = {'common': [smallHealthPotion, healthPotion]}
+# potions = {'common': [smallHealthPotion, healthPotion]}
 
 rat = Monster('Rat', 20, 1, 3, 0, 0.1, 0.2)
 vileBat = Monster('Vile Bat', 1, 2, 3, 0, 0.3, 0.2)
