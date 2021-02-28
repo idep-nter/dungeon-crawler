@@ -18,6 +18,7 @@ class Creature:
     def attack(self, target):
         attack = random.randint(self.minDps, self.maxDps)
         if random.random() < target.evasion:
+            print(f'{self.name} missed the attack!')
             return False
         if random.random() < self.critChance:
             attack = (attack / 100) * 150
@@ -27,14 +28,14 @@ class Creature:
         print(f'{target.name} was hit by {attack}!')
         target.currentHealth -= attack
 
-    def itemDrop(self, player, items):
+    def itemDrop(self, player):
         n = random.random()
         if n < 0.1:
-            item = random.choice(items['rare'])
+            item = self.randomItem('rare')
         elif n < 0.3:
-            item = random.choice(items['uncommon'])
+            item = self.randomItem('uncommon')
         else:
-            item = random.choice(items['common'])
+            item = self.randomItem('common')
         print(f'You have found {item.name}!')
         player.inventory.append(item)
 
@@ -49,6 +50,12 @@ class Creature:
             print(f'You have found {potion.name}!')
             player.inventory.append(potion)
 
+    def randomItem(self, rarity):
+        global items
+        iType = random.choice(list(items[rarity]))
+        item = random.choice(list(items[rarity][iType]))
+        return item
+
     # def specialAbility(self):
 
 
@@ -59,12 +66,12 @@ class Player(Creature):
                  armor=None, ring1=None, ring2=None, shield=None):
         super().__init__(name, currentHealth, minDps, maxDps, armorValue,
                          evasion, critChance, shield)
+        self.inventory = []
         self.maxHealth = maxHealth
         self.currentHealth = currentHealth
         self.maxWeight = maxWeight
         self.currentWeight = currentWeight
         self.gold = gold
-        self.inventory = []
         self.weapon = weapon
         self.armor = armor
         self.ring1 = ring1
@@ -175,7 +182,20 @@ class Player(Creature):
         except ValueError:
             print(f'{item} not in the inventory!')
 
-    def drinkPotion(self): # add potions?
+    def drinkPotion(self):
+        potion = self.potionChoice
+        heal = potion.heal
+        pHealth = self.currentHealth
+        self.currentHealth += heal
+        if self.currentHealth > self.maxHealth:
+            self.currentHealth = self.maxHealth
+            heal = self.maxHealth - pHealth
+            print(f'{heal} health healed!')
+        else:
+            print(f'{heal} health healed!')
+            self.inventory.remove(potion)
+
+    def potionChoice(self):
         try:
             if Potion not in self.inventory:
                 print('No potions in the inventory!')
@@ -183,34 +203,28 @@ class Player(Creature):
             elif smallHealthPotion in self.inventory and healthPotion not in \
                     self.inventory:
                 potion = smallHealthPotion
+                return potion
             elif healthPotion in self.inventory and smallHealthPotion not in \
                     self.inventory:
                 potion = healthPotion
+                return potion
             else:
                 q = input('Which potion do you want to use? Small or '
                           'big?').lower()
                 if q == 'small':
                     potion = smallHealthPotion
+                    return potion
                 elif q == 'big':
                     potion = healthPotion
+                    return potion
                 else:
                     print('Please type correct potion size!')
                     raise ValueError
-            heal = potion.heal
-            pHealth = self.currentHealth
-            self.currentHealth += heal
-            if self.currentHealth > self.maxHealth:
-                self.currentHealth = self.maxHealth
-                heal = self.maxHealth - pHealth
-                print(f'{heal} health healed!')
-            else:
-                print(f'{heal} health healed!')
-            self.inventory.remove(potion)
         except ValueError:
             pass
 
     def death(self):
-        return True if self.currentHealth < 0 else False
+        return True if self.currentHealth <= 0 else False
 
     def handCheck(self, item):
         if isinstance(item, Greataxe) or isinstance(item, Greatsword) and \
@@ -237,9 +251,9 @@ class Monster(Creature):
         print(f'You have found {gold} gold!')
         player.gold += gold
 
-    def death(self, player, items):
-        if self.currentHealth < 0:
-            self.itemDrop(player, items)
+    def death(self, player):
+        if self.currentHealth <= 0:
+            self.itemDrop(player)
             self.goldDrop(player)
             self.potionDrop(player)
             return True
@@ -251,16 +265,16 @@ class Boss(Creature):
         super().__init__(name, currentHealth, minDps, maxDps, armorValue,
                          evasion, critChance, shield)
 
-    def death(self, player, items):
-        if self.currentHealth < 0:
-            self.itemDrop(player, items)
+    def death(self, player):
+        if self.currentHealth <= 0:
+            self.itemDrop(player)
             self.goldDrop(player)
             self.potionDrop(player)
             return True
         return False
 
-    def itemDrop(self, player, items): # need to checkout override
-        item = random.choice(items['rare'])
+    def itemDrop(self, player): # need to checkout override
+        item = self.randomItem('rare')
         print(f'You have found {item.name}!')
         player.inventory.append(item)
 
@@ -398,23 +412,29 @@ class Chest:
     def __init__(self):
         pass
 
-    def open(self, player, items):
-        self.itemFind(player, items)
+    def open(self, player):
+        self.itemFind(player)
         self.potionFind(player)
         self.trap(player)
 
-    def itemFind(self, player, items):
+    def itemFind(self, player):
         n = random.random()
         if n < 0.3:
-            item = random.choice(items['rare'])
+            item = self.randomItem('rare')
         elif n < 0.5:
-            item = random.choice(items['uncommon'])
+            item = self.randomItem('uncommon')
         else:
-            item = random.choice(items['common'])
-        player.inventory.append(item)
+            item = self.randomItem('common')
         print(f'You have found {item.name}!')
+        player.inventory.append(item)
 
-    def potionFind(self, player): # add potions?
+    def randomItem(self, rarity):
+        global items
+        iType = random.choice(list(items[rarity]))
+        item = random.choice(list(items[rarity][iType]))
+        return item
+
+    def potionFind(self, player):
         n = random.random()
         if n < 0.5:
             potion = healthPotion
@@ -463,7 +483,7 @@ class Game:
             self.currPos = self.prevPos[:]
             self.movePlayer()
 
-    def action(self, player, items):
+    def action(self, player):
         cx, cy = self.currPos
         object = self.oLevel[cy][cx]
         if isinstance(object, Shrine):
@@ -474,51 +494,59 @@ class Game:
         elif isinstance(object, Chest):
             print('You see a wooden chest before you. What treasures does it '
                   'hold? You shiver with excitement as you opening it...')
-            object.open(player, items)
+            object.open(player)
             self.oLevel[cy][cx] = None
         elif isinstance(object, Monster):
             print(f'Damn, you see a {object.name}!')
-            while True:
-                self.command(player, items)
-                time.sleep(1)
-                player.attack(object)
-                if object.death(player, items, potions):
-                    print(f'{object.name.upper()} DEFEATED!')
-                    self.oLevel[cy][cx] = None
-                    break
+            pAction = True
+            while pAction:
+                c = self.command(player)
+                if c == 'auto-attack':
+                    while True:
+                        if self.battle(player, object, cx, cy):
+                            pAction = False
+                            break
                 else:
-                    time.sleep(1)
-                    object.attack(player)
-                    if player.death():
-                        print('YOU DIED')
-                        self.flag = False
-                    time.sleep(1)
+                    if self.battle(player, object, cx, cy):
+                        pAction = False
         elif isinstance(object, Boss):
             print(f'Damn, you see a {object.name}! He looks tough!')
-            while True:
-                self.command(player, items)
-                time.sleep(1)
-                player.attack(object)
-                if object.death(player, items, potions):
-                    print(f'{object.name.upper()} DEFEATED!')
-                    self.flag = False
+            pAction = True
+            while pAction:
+                c = self.command(player)
+                if c == 'auto-attack':
+                    while True:
+                        if self.battle(player, object, cx, cy):
+                            pAction = False
+                            break
                 else:
-                    time.sleep(1)
-                    object.attack(player)
-                    if player.death():
-                        print('YOU DIED')
-                        self.flag = False
-                    time.sleep(1)
+                    if self.battle(player, object, cx, cy):
+                        pAction = False
 
-    def command(self, player, items):
+    def battle(self, player, object, cx, cy):
+        time.sleep(1)
+        player.attack(object)
+        if object.death(player):
+            self.oLevel[cy][cx] = None # mb not working
+            return True
+        else:
+            time.sleep(1)
+            object.attack(player)
+            if player.death():
+                print('YOU DIED')
+                self.flag = False
+            time.sleep(1)
+
+    def command(self, player):
+        global items
         eq = re.compile(r'equip (\w)+')
         uneq = re.compile(r'unequip (\w)+')
         view = re.compile(r'view (\w)+')
         while True:
             try:
-                a = input('What\'s your action?').lower()
-                if a == 'attack':
-                    break
+                a = input('What\'s your action? ').lower()
+                if a == 'attack' or a == 'auto-attack':
+                    return a
                 if a == 'help':
                     help()
                 elif a == 'char':
@@ -557,15 +585,15 @@ class Game:
         intro2(name)
         gameRules()
         while self.flag:
-            print(str(self.level))
-            ctrl = input('Which way would you like to go?').lower()
+            print(str(self.level) + '\n')
+            ctrl = input('Which way would you like to go? ').lower()
             if ctrl in Game.ctrls:
                 d = Game.ctrls.index(ctrl)
                 self.prevPos = self.currPos[:]
                 self.currPos[d > 2] += d - (1 if d < 3 else 4)
                 self.movePlayer()
-                # breakpoint()
-                self.action(player, items)
+                breakpoint()
+                self.action(player)
             elif ctrl == Game.exit:
                 self.flag = False
             else:
@@ -642,7 +670,7 @@ items = {'common': {'weapon': [dagger, axe, longsword, greatsword,
 potions = {'common': [smallHealthPotion, healthPotion]}
 
 rat = Monster('Rat', 20, 1, 3, 0, 0.1, 0.2)
-vileBat = Monster('Vile Bat', 15, 2, 3, 0, 0.3, 0.2)
+vileBat = Monster('Vile Bat', 1, 2, 3, 0, 0.3, 0.2)
 zombie = Monster('Zombie', 30, 3, 5, 5, 0, 0.05)
 skeletonWarrior = Monster('Skeleton Warrior', 25, 3, 7, 20, 0.1, 0.1)
 lesserShade = Monster('Lesser Shade', 10, 2, 6, 0, 0.5, 0.1)
@@ -681,23 +709,25 @@ be asked which way do you want to continue. If you encounter a monster you will
 be given time to prepare e.g. refill health, switch gear etc. You can also do it 
 after each round.
 
-The game ends when you defeat the boss of the level or die trying... 
+The game ends when you defeat the boss of the level or you die trying... 
 ================================================================================
 """)
 
 def help():
     print("""
 COMMANDS:
-attack             attack monster
+attack             attack a monster
+auto-attack        attack a monster until the fight ends
 char               shows your statistics and equiped gear
 inv                shows your inventory 
-equip >item<       equips item
-unequip >item<     unequips item
-view >item<        shows attributes of the item
-drink              drink potion to regain health
+equip >item<       equip an item
+unequip >item<     unequip an item
+view >item<        shows attributes of an item
+drink              drink a potion to regain health
 quit               exit game       
 """)
 
 if __name__ == '__main__':
     game = Game(map)
     game.play()
+
