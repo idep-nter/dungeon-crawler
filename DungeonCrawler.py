@@ -78,25 +78,29 @@ class Player(Creature):
         self.ring2 = ring2
         self.shield = shield
 
-    def showChar(self): # not showing properly
-        attrs = vars(Player)
+    def showChar(self, player):
+        attrs = vars(player)
         for key, value in attrs.items():
-            print(f'{key} = {value}')
+            if key == 'inventory' or key == 'gold':
+                continue
+            if isinstance(value,Item):
+                print(f'{key} : {value.name}')
+            else:
+                print(f'{key} : {value}')
 
     def showInventory(self):
-        print(i for i in self.inventory)
+        print(f'{self.gold} gold')
+        for item in self.inventory:
+            print(f'{item.name}')
 
     def equipItem(self, item):
         try:
-            if item not in self.inventory:
-                print(f'{item} not in the inventory!')
-                raise ValueError
             if not self.weightCheck(item):
                 print('You weight too much!')
                 raise ValueError
             if isinstance(item, Weapon):
                 if not self.handCheck(item):
-                    print(f'Cannot equip!')
+                    print('Cannot equip!')
                     raise ValueError
                 if self.weapon:
                     pWeapon = self.weapon
@@ -188,6 +192,12 @@ class Player(Creature):
             else:
                 print('Wrong item!')
 
+    def itemSearch(self, itemName):
+        for item in self.inventory:
+            if itemName.lower() == item.name.lower():
+                return item
+        print(f'{itemName} not in the inventory!')
+
     def drinkPotion(self):
         potion = self.potionChoice()
         heal = potion.heal
@@ -259,6 +269,7 @@ class Monster(Creature):
 
     def death(self, player):
         if self.currentHealth <= 0:
+            print(f'{self.name} was slain!')
             self.itemDrop(player)
             self.goldDrop(player)
             self.potionDrop(player)
@@ -546,38 +557,41 @@ class Game:
             time.sleep(1)
 
     def command(self, player):
-        eq = re.compile(r'equip (\w)+')
-        uneq = re.compile(r'unequip (\w)+')
-        view = re.compile(r'view (\w)+')
+        eq = re.compile(r'equip (\w+\s*\w*)')
+        uneq = re.compile(r'unequip (\w+\s*\w*)')
+        view = re.compile(r'view (\w+\s*\w*)')
         while True:
             try:
-                a = input('What\'s your action? ').lower()
+                a = input('\nWhat\'s your action? ').lower()
                 if a == 'attack' or a == 'auto-attack':
                     return a
                 if a == 'help':
                     help()
                 elif a == 'char':
-                    player.showChar()
+                    player.showChar(player)
                 elif a == 'inv':
                     player.showInventory()
-                elif a == eq:
+                elif 'unequip' in a:
+                    mo = uneq.search(a)
+                    itemName = mo.group(1)
+                    item = player.itemSearch(itemName)
+                    if item:
+                        player.unequipItem(item)
+                        print(f'{item.name} unequiped!')
+                elif 'equip' in a:
                     mo = eq.search(a)
-                    item = mo.group(1) # kinda problematic - needs to be exact name of the variable
-                    player.equipItem(item)
-                    print(f'{item} equiped!')
-                elif a == uneq:
-                    mo = uneq.search(a)
-                    item = mo.group(1) # same shit
-                    player.unequipItem(item)
-                    print(f'{item} unequiped!')
-                elif a == view:
-                    mo = uneq.search(a)
-                    item = mo.group(1).lower()
-                    if item not in player.inventory:
-                        print(f'{item} not in the inventory!')
-                        raise ValueError
-                    item = player.inventory[item]
-                    item.itemView()
+                    itemName = mo.group(1)
+                    item = player.itemSearch(itemName)
+                    if item:
+                        player.equipItem(item)
+                        print(f'{item.name} equiped!')
+                elif 'view' in a:
+                    mo = view.search(a)
+                    itemName = mo.group(1)
+                    item = player.itemSearch(itemName)
+                    if item:
+                        item = player.inventory[item]
+                        item.itemView()
                 elif a == 'drink':
                     player.drinkPotion()
                 elif a == Game.exit:
@@ -736,6 +750,7 @@ view >item<        shows attributes of an item
 drink              drink a potion to regain health
 quit               exit game       
 """)
+
 
 if __name__ == '__main__':
     game = Game(map)
