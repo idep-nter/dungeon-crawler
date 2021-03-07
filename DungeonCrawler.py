@@ -4,28 +4,37 @@ import re
 
 
 class Creature:
-    def __init__(self, name, currentHealth, minDps, maxDps, armorValue,
-                 evasion, critChance, shield=None):
+    def __init__(self, name, maxHealth, currentHealth, minDps, maxDps,
+                 armorValue, evasion, critChance, maxWeight=None,
+                 currentWeight=None, shield=None):
         self.name = name
+        self.maxHealth = maxHealth
         self.currentHealth = currentHealth
         self.minDps = minDps
         self.maxDps = maxDps
         self.armorValue = armorValue
         self.evasion = evasion
         self.critChance = critChance
+        self.maxWeight = maxWeight
+        self.currentWeight = currentWeight
         self.shield = shield
 
     def attack(self, target):
         attack = random.randint(self.minDps, self.maxDps)
+        crit = False
         if random.random() < target.evasion:
             print(f'{self.name} missed the attack!')
             return False
         if random.random() < self.critChance:
+            crit = True
             attack = (attack / 100) * 150
         if target.shield:
             attack = (attack / 100) * 70
-        attack = attack / (1 + (target.armorValue / 100))
-        print(f'{target.name} was hit by {attack}!')
+        attack = round(attack / (1 + (target.armorValue / 100)))
+        if crit:
+            print(f'{target.name} was critically hit by {attack}!')
+        else:
+            print(f'{target.name} was hit by {attack}!')
         target.currentHealth -= attack
 
     def itemDrop(self, player):
@@ -64,13 +73,10 @@ class Player(Creature):
                  maxDps=4, armorValue=0, evasion=0.2, critChance=0.1,
                  maxWeight=100, currentWeight=0, gold=0, weapon=None,
                  armor=None, ring1=None, ring2=None, shield=None):
-        super().__init__(name, currentHealth, minDps, maxDps, armorValue,
-                         evasion, critChance, shield)
+        super().__init__(name, maxHealth, currentHealth, minDps, maxDps,
+                         armorValue, evasion, critChance, maxWeight,
+                         currentWeight, shield)
         self.inventory = []
-        self.maxHealth = maxHealth
-        self.currentHealth = currentHealth
-        self.maxWeight = maxWeight
-        self.currentWeight = currentWeight
         self.gold = gold
         self.weapon = weapon
         self.armor = armor
@@ -83,10 +89,11 @@ class Player(Creature):
         for key, value in attrs.items():
             if key == 'inventory' or key == 'gold':
                 continue
-            if isinstance(value,Item):
-                print(f'{key} : {value.name}')
+            if isinstance(value, Item):
+                print(f'{key:^15} : {value.name:^15}')
             else:
-                print(f'{key} : {value}')
+                value = strNone(value)
+                print(f'{key:^15} : {value:^15}')
 
     def showInventory(self):
         print(f'{self.gold} gold')
@@ -95,9 +102,10 @@ class Player(Creature):
 
     def equipItem(self, item):
         try:
-            if not self.weightCheck(item):
-                print('You weight too much!')
-                raise ValueError
+            if not isinstance(item, Ring):
+                if not self.weightCheck(item):
+                    print('You weight too much!')
+                    raise ValueError
             if isinstance(item, Weapon):
                 if not self.handCheck(item):
                     print('Cannot equip!')
@@ -111,6 +119,7 @@ class Player(Creature):
                 self.maxDps += item.maxDps
                 self.critChance += item.critChance
                 self.inventory.remove(item)
+                print(f'{item.name} equiped!')
             elif isinstance(item, Shield):
                 if not self.handCheck(item):
                     print(f'Cannot equip!')
@@ -122,6 +131,7 @@ class Player(Creature):
                 self.currentWeight += item.weight
                 self.armorValue += item.armorValue
                 self.inventory.remove(item)
+                print(f'{item.name} equiped!')
             elif isinstance(item, Armor):
                 if self.armor:
                     pArmor = self.armor
@@ -131,6 +141,7 @@ class Player(Creature):
                 self.armorValue += item.armorValue
                 self.evasion += item.evasion
                 self.inventory.remove(item)
+                print(f'{item.name} equiped!')
             elif isinstance(item, Ring):
                 if self.ring1 and not self.ring2:
                     self.ring2 = item
@@ -142,15 +153,21 @@ class Player(Creature):
                     self.ring1 = item
                 else:
                     self.ring1 = item
-                self.maxHealth += item.maxHealth
-                self.minDps += item.minDps
-                self.maxDps += item.maxDps
-                self.armorValue += item.armorValue
-                self.evasion += item.evasion
-                self.critChance += item.critChance
+                if item.maxHealth:
+                    self.maxHealth += item.maxHealth
+                if item.minDps:
+                    self.minDps += item.minDps
+                    self.maxDps += item.maxDps
+                if item.armorValue:
+                    self.armorValue += item.armorValue
+                if item.evasion:
+                    self.evasion += item.evasion
+                if item.critChance:
+                    self.critChance += item.critChance
                 self.inventory.remove(item)
+                print(f'{item.name} equiped!')
         except ValueError:
-            pass
+            return False
 
     def unequipItem(self, item):
             if item == self.weapon:
@@ -192,10 +209,15 @@ class Player(Creature):
             else:
                 print('Wrong item!')
 
-    def itemSearch(self, itemName):
+    def itemSearch(self, player, itemName):
+        attrs = vars(player)
         for item in self.inventory:
             if itemName.lower() == item.name.lower():
                 return item
+        for value in attrs.values():
+            if isinstance(value, Item):
+                if itemName.lower() == value.name.lower():
+                    return value
         print(f'{itemName} not in the inventory!')
 
     def drinkPotion(self):
@@ -237,7 +259,7 @@ class Player(Creature):
                     print('Please type correct potion size!')
                     raise ValueError
         except ValueError:
-            pass
+            return False
 
     def death(self):
         return True if self.currentHealth <= 0 else False
@@ -257,10 +279,10 @@ class Player(Creature):
 
 
 class Monster(Creature):
-    def __init__(self, name, currentHealth, minDps, maxDps, armorValue, evasion,
-                 critChance, shield=None):
-        super().__init__(name, currentHealth, minDps, maxDps, armorValue,
-                         evasion, critChance, shield)
+    def __init__(self, name, maxHealth, currentHealth, minDps, maxDps,
+                 armorValue, evasion, critChance, shield=None):
+        super().__init__(name, maxHealth, currentHealth, minDps, maxDps,
+                         armorValue, evasion, critChance, shield)
 
     def goldDrop(self, player):
         gold = random.randint(5, 20)
@@ -270,23 +292,31 @@ class Monster(Creature):
     def death(self, player):
         if self.currentHealth <= 0:
             print(f'{self.name} was slain!')
+            time.sleep(1)
             self.itemDrop(player)
+            time.sleep(1)
             self.goldDrop(player)
+            time.sleep(1)
             self.potionDrop(player)
+            time.sleep(1)
             return True
         return False
 
 class Boss(Creature):
-    def __init__(self, name, currentHealth, minDps, maxDps, armorValue, evasion,
-                 critChance, shield=None):
-        super().__init__(name, currentHealth, minDps, maxDps, armorValue,
-                         evasion, critChance, shield)
+    def __init__(self, name, maxHealth, currentHealth, minDps, maxDps,
+                 armorValue, evasion, critChance, shield=None):
+        super().__init__(name, maxHealth, currentHealth, minDps, maxDps,
+                         armorValue, evasion, critChance, shield)
 
     def death(self, player):
         if self.currentHealth <= 0:
+            time.sleep(1)
             self.itemDrop(player)
+            time.sleep(1)
             self.goldDrop(player)
+            time.sleep(1)
             self.potionDrop(player)
+            time.sleep(1)
             return True
         return False
 
@@ -308,16 +338,11 @@ class Boss(Creature):
 
 class Item:
     def __init__(self, name, type, rarity, value, weight=None):
-        self.type = type
         self.name = name
+        self.type = type
         self.rarity = rarity
         self.value = value
         self.weight = weight
-
-    def itemView(self): # mb not showing all attributes
-        attrs = vars(Item)
-        for key, value in attrs.items():
-            print(f'{key} = {value}')
 
 
 class Weapon(Item):
@@ -327,6 +352,12 @@ class Weapon(Item):
         self.minDps = minDps
         self.maxDps = maxDps
         self.critChance = critChance
+
+    def itemView(self):
+        attrs = vars(self)
+        for key, value in attrs.items():
+            value = strNone(value)
+            print(f'{key:^15} : {value:^15}')
 
 
 class Longsword(Weapon):
@@ -370,6 +401,12 @@ class Shield(Item):
         self.armorValue = armorValue
         self.evasion = evasion
 
+    def itemView(self):
+        attrs = vars(self)
+        for key, value in attrs.items():
+            value = strNone(value)
+            print(f'{key:^15} : {value:^15}')
+
 
 class Greatshield(Shield):
     def __init__(self, name, type, rarity, value, weight, armorValue, evasion):
@@ -386,6 +423,12 @@ class Armor(Item):
         super().__init__(name, type, rarity, value, weight)
         self.armorValue = armorValue
         self.evasion = evasion
+
+    def itemView(self):
+        attrs = vars(self)
+        for key, value in attrs.items():
+            value = strNone(value)
+            print(f'{key:^15} : {value:^15}')
 
 
 class LightArmor(Armor):
@@ -410,11 +453,22 @@ class Ring(Item):
         self.evasion = evasion
         self.critChance = critChance
 
+    def itemView(self):
+        attrs = vars(self)
+        for key, value in attrs.items():
+            value = strNone(value)
+            print(f'{key:^15} : {value:^15}')
+
 
 class Potion(Item):
     def __init__(self, name, type, rarity, value, heal):
         super().__init__(name, type, rarity, value)
         self.heal = heal
+
+    def itemView(self):
+        attrs = vars(self)
+        for key, value in attrs.items():
+            print(f'{key} : {value}')
 
 
 class Shrine:
@@ -545,21 +599,26 @@ class Game:
     def battle(self, player, object, cx, cy):
         time.sleep(1)
         player.attack(object)
-        if object.death(player):
-            self.oLevel[cy][cx] = None # mb not working
-            return True
-        else:
-            time.sleep(1)
-            object.attack(player)
-            if player.death():
-                print('YOU DIED')
+        if isinstance(object, Boss):
+            if object.death(player): # doesn't end the game
+                print('VICTORY ACHIEVED')
                 self.flag = False
-            time.sleep(1)
+                return False
+        elif object.death(player):
+            self.oLevel[cy][cx] = None
+            return True
+        time.sleep(1)
+        object.attack(player)
+        if player.death(): # doesn't end the game
+            print('YOU DIED')
+            self.flag = False
+            return False
+        time.sleep(1)
 
     def command(self, player):
-        eq = re.compile(r'equip (\w+\s*\w*)')
-        uneq = re.compile(r'unequip (\w+\s*\w*)')
-        view = re.compile(r'view (\w+\s*\w*)')
+        eq = re.compile(r'equip (\w+\s*)+')
+        uneq = re.compile(r'unequip (\w+\s*)+')
+        view = re.compile(r'view (\w+\s*)+')
         while True:
             try:
                 a = input('\nWhat\'s your action? ').lower()
@@ -574,26 +633,27 @@ class Game:
                 elif 'unequip' in a:
                     mo = uneq.search(a)
                     itemName = mo.group(1)
-                    item = player.itemSearch(itemName)
+                    item = player.itemSearch(player, itemName)
                     if item:
                         player.unequipItem(item)
                         print(f'{item.name} unequiped!')
                 elif 'equip' in a:
                     mo = eq.search(a)
                     itemName = mo.group(1)
-                    item = player.itemSearch(itemName)
+                    item = player.itemSearch(player, itemName)
                     if item:
                         player.equipItem(item)
-                        print(f'{item.name} equiped!')
                 elif 'view' in a:
                     mo = view.search(a)
                     itemName = mo.group(1)
-                    item = player.itemSearch(itemName)
+                    item = player.itemSearch(player, itemName)
                     if item:
-                        item = player.inventory[item]
                         item.itemView()
-                elif a == 'drink':
+                elif a == 'drink': # broken
+                    breakpoint()
                     player.drinkPotion()
+                elif a == 'map':
+                    print('\n' + str(self.level) + '\n')
                 elif a == Game.exit:
                     self.flag = False
                 else:
@@ -609,14 +669,13 @@ class Game:
         intro2(name)
         gameRules()
         while self.flag:
-            print(str(self.level) + '\n')
+            print('\n' + str(self.level) + '\n')
             ctrl = input('Which way would you like to go? ').lower()
             if ctrl in Game.ctrls:
                 d = Game.ctrls.index(ctrl)
                 self.prevPos = self.currPos[:]
                 self.currPos[d > 2] += d - (1 if d < 3 else 4)
                 self.movePlayer()
-                # breakpoint()
                 self.action(player)
             elif ctrl == Game.exit:
                 self.flag = False
@@ -693,13 +752,13 @@ items = {'common': {'weapon': [dagger, axe, longsword, greatsword,
          }
 # potions = {'common': [smallHealthPotion, healthPotion]}
 
-rat = Monster('Rat', 20, 1, 3, 0, 0.1, 0.2)
-vileBat = Monster('Vile Bat', 1, 2, 3, 0, 0.3, 0.2)
-zombie = Monster('Zombie', 30, 3, 5, 5, 0, 0.05)
-skeletonWarrior = Monster('Skeleton Warrior', 25, 3, 7, 20, 0.1, 0.1)
-lesserShade = Monster('Lesser Shade', 10, 2, 6, 0, 0.5, 0.1)
-giantSpider = Monster('Giant Spider', 25, 3, 8, 10, 0.1, 0.1)
-darkKnight = Boss('Dark Knight', 80, 10, 15, 50, 0.05, 0.1, shield=True)
+rat = Monster('Rat', 20, 20, 1, 3, 0, 0.1, 0.2)
+vileBat = Monster('Vile Bat', 15, 15, 2, 3, 0, 0.3, 0.2)
+zombie = Monster('Zombie', 30, 30, 3, 5, 5, 0, 0.05)
+skeletonWarrior = Monster('Skeleton Warrior', 25, 25, 3, 7, 20, 0.1, 0.1)
+lesserShade = Monster('Lesser Shade', 10, 10, 2, 6, 0, 0.5, 0.1)
+giantSpider = Monster('Giant Spider', 25, 25, 3, 8, 10, 0.1, 0.1)
+darkKnight = Boss('Dark Knight', 80, 80, 10, 15, 50, 0.05, 0.1, shield=True)
 shrine = Shrine()
 chest = Chest()
 
@@ -740,6 +799,7 @@ The game ends when you defeat the boss of the level or you die trying...
 def help():
     print("""
 COMMANDS:
+map                shows a map
 attack             attack a monster
 auto-attack        attack a monster until the fight ends
 char               shows your statistics and equiped gear
@@ -751,6 +811,10 @@ drink              drink a potion to regain health
 quit               exit game       
 """)
 
+def strNone(value):
+    if value == None:
+        return '-'
+    return value
 
 if __name__ == '__main__':
     game = Game(map)
