@@ -1,4 +1,4 @@
-I made the first fully working build of my text rpg game made in OOP respectively first level of it.
+Here is the first level of my text rpg game fully made in OOP.
 
 The point of the game is to defeat the main boss of the level which consists of small rooms each containing an object or a monster.
 
