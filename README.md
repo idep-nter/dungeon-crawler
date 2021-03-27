@@ -1,9 +1,9 @@
-* WORK IN PROGRESS *
+I made the first fully working build of my text rpg game made in OOP respectively first level of it.
 
-- currently working on my biggest project so far - old school dungeon crawler - game developing ain't so easy!
+The point of the game is to defeat the main boss of the level which consists of small rooms each containing an object or a monster.
 
-- getting close to a first fully working build
+As in other rpg games you can find various items which you can equip to increase character stats and fight enemies more easily.
 
-- in the future I might add eg. exp system, special abilities maybe even some graphic - we'll see how it goes.
+You move your character between room by typing directon commands (left, right...) and in battles you are able to do several actions such as view you char, (un)eqip gear, view map etc.
 
-* STAY TUNED *
+In the future I might add eg. exp system, special abilities and maybe even some game graphics - we'll see how it goes. 
