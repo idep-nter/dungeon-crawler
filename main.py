@@ -3,7 +3,7 @@ import re
 import creatures as cr
 import items as it
 import objects as ob
-
+import random
 
 dagger = it.Dagger('Dagger', 'dagger', 'common', 3, 2, 3, 7, 0.2)
 axe = it.SmallAxe('Axe', 'small axe', 'common', 5, 5, 5, 10, 0.1)
@@ -63,10 +63,12 @@ forsakenPromise = it.Ring('Forsaken Promise', 'ring', 'rare', 26,
                           critChance=0.2)
 ancientVigor = it.Ring('Ancient Vigor', 'ring', 'rare', 25, minDps=11,
                        maxDps=18)
-smallHealthPotion = it.Potion('Small Health Potion', 'potion', 'common', 10, 20)
-healthPotion = it.Potion('Health Potion', 'potion', 'common', 20, 40)
+smallHealthPotion = it.HealthPotion('Small Health Potion', 'potion', 'common',
+                                    10, 20)
+healthPotion = it.HealthPotion('Health Potion', 'potion', 'common', 20, 40)
+antidote = ('Antidote', 'potion', 'common', 10)
 
-potions = [smallHealthPotion, healthPotion]
+potions = [smallHealthPotion, healthPotion, antidote]
 
 
 items = {'common': {'weapon': [dagger, axe, longsword, greatsword,
@@ -110,6 +112,7 @@ class Level(list):
 
     def __str__(self):
         return "\n".join(' '.join(row) for row in self)
+
 
 
 class Game:
@@ -179,24 +182,52 @@ class Game:
                     if self.battle(player, object, cx, cy):
                         pAction = False
 
+    def special(self, object, player):
+        if object == zombie:
+            object.regenerate(self)
+        elif object == giantSpider or object == rat:
+            if object.poison(self):
+                player.states.append('poisoned')
+        elif object == darkKnight:
+            if object.stun(self):
+                player.states.append('stunned')
+
+    def stateCheck(self, player):
+        if player.states:
+            if 'poisoned' in player.states:
+                n = random.randint(1, 5)
+                print(f'{player.name} took {n} damage from poison!')
+                player.currentHealth -= n
+            if 'stunned' in player.states:
+                player.states.remove('stunned')
+                return False
+            return True
+        else:
+            return True
+
     def battle(self, player, object, cx, cy):
         time.sleep(1)
-        player.attack(object)
+        if self.stateCheck(player):
+            player.attack(object)
         if isinstance(object, cr.Boss):
             if object.death(items, potions, player):
                 print('VICTORY ACHIEVED')
                 self.flag = False
                 return True
         elif object.death(items, potions, player):
+            player.levelCheck()
             self.oLevel[cy][cx] = None
+            player.states = []
             return True
         time.sleep(1)
         object.attack(player)
+        self.special(object, player)
         if player.death():
             print('YOU DIED')
             self.flag = False
             return True
         time.sleep(1)
+
 
     def command(self, player):
         eq = re.compile(r'equip ((\w+\s*)+)')
