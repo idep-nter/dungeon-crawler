@@ -16,6 +16,7 @@ class Creature:
         self.evasion = evasion
         self.critChance = critChance
         self.shield = shield
+        self.states = []
 
     def attack(self, target):
         attack = random.randint(self.minDps, self.maxDps)
@@ -35,6 +36,12 @@ class Creature:
             print(f'{target.name} was hit by {attack}!')
         target.currentHealth -= attack
 
+    def goldDrop(self, player):
+        gold = random.randint(5, 20)
+        print(f'You have found {gold} gold!')
+        player.gold += gold
+
+
     def itemDrop(self, items, player):
         n = random.random()
         if n < 0.1:
@@ -52,7 +59,11 @@ class Creature:
             potion = potions[1]
             print(f'You have found {potion.name}!')
             player.inventory.append(potion)
-        elif n < 0.6:
+        elif n < 0.5:
+            potion = potions[3]
+            print(f'You have found {potion.name}!')
+            player.inventory.append(potion)
+        elif n < 0.8:
             potion = potions[0]
             print(f'You have found {potion.name}!')
             player.inventory.append(potion)
@@ -62,23 +73,47 @@ class Creature:
         item = random.choice(list(items[rarity][iType]))
         return item
 
+    def regenerate(self):
+        n = random.random()
+        if n < 0.3:
+            hp = random.randint(1, 5)
+            print(f'{self.name} regenerated {hp} health!')
+            self.currentHealth += hp
+
+    def stun(self):
+        n = random.random()
+        if n < 0.3:
+            print('You have been stunned!')
+            return True
+        return False
+
+    def poison(self):
+        n = random.random()
+        if n < 0.1:
+            print('You have been poisoned!')
+            return True
+        return False
+
 
 class Player(Creature):
     def __init__(self, name, maxHealth=100, currentHealth=100, minDps=1,
                  maxDps=4, armorValue=0, evasion=0.2, critChance=0.1,
-                 maxWeight=100, currentWeight=0, gold=0, weapon=None,
-                 armor=None, ring1=None, ring2=None, shield=None):
+                 maxWeight=100, currentWeight=0, gold=0, exp=0, lvl=0,
+                 weapon=None, armor=None, ring1=None, ring2=None, shield=None):
         super().__init__(name, maxHealth, currentHealth, minDps, maxDps,
-                         armorValue, evasion, critChance, shield)
+                         armorValue, evasion, critChance, shield, self.states)
         self.maxWeight = maxWeight
         self.currentWeight = currentWeight
         self.inventory = []
         self.gold = gold
+        self.exp = exp
+        self.lvl = lvl
         self.weapon = weapon
         self.armor = armor
         self.ring1 = ring1
         self.ring2 = ring2
         self.shield = shield
+        self.perks = []
 
     def showChar(self, player):
         attrs = vars(player)
@@ -217,16 +252,20 @@ class Player(Creature):
         print(f'{itemName} not in the inventory!')
 
     def drinkPotion(self, potion):
-        heal = potion.heal
-        pHealth = self.currentHealth
-        self.currentHealth += heal
-        if self.currentHealth > self.maxHealth:
-            self.currentHealth = self.maxHealth
-            heal = self.maxHealth - pHealth
-            print(f'{heal} health healed!')
-        else:
-            print(f'{heal} health healed!')
-            self.inventory.remove(potion)
+        if isinstance(potion, it.HealthPotion):
+            heal = potion.heal
+            pHealth = self.currentHealth
+            self.currentHealth += heal
+            if self.currentHealth > self.maxHealth:
+                self.currentHealth = self.maxHealth
+                heal = self.maxHealth - pHealth
+                print(f'{heal} health healed!')
+            else:
+                print(f'{heal} health healed!')
+                self.inventory.remove(potion)
+        elif isinstance(potion, it.Antidote):
+            potion.curePoison(self)
+            print('Poison was cured!')
 
     def death(self):
         return True if self.currentHealth <= 0 else False
@@ -245,18 +284,52 @@ class Player(Creature):
         return False if self.currentWeight + item.weight > self.maxWeight else \
             True
 
+    def levelCheck(self):
+        lvls = {2 : 1000}
+        for i in range(3, 21):
+            num = 1000 * i * 1.5
+            lvls.setdefault(i, num)
+        for k, v in lvls.items():
+            if self.exp >= v and self.lvl < k:
+                self.levelUp()
+        return False
+
+    def levelUp(self):
+        self.lvl += 1
+        print('LEVEL UP!')
+        self.maxHealth += 20
+        print(f'Your max health is now {self.maxHealth}')
+        if self.lvl % 4 == 0:
+            self.choosePerk()
+
+    def choosePerk(self): # check formatting
+        perks = {'Ninja' : '+0.1 evasion', 'Berserk' : '+0.1 critchance',
+                 'Bud Spancer' : '+50 max health', 'Defendor' : '+30 armor'}
+        for key, value in perks.items():
+            print(f'{key:^15} : {value:^15}')
+        while True:
+            try:
+                choice = input('Choose your new Perk!')
+                if choice.lower == 'ninja':
+                    self.evasion += 0.1
+                elif choice.lower == 'berserk':
+                    self.critChance += 0.1
+                elif choice.lower == 'bud spancer':
+                    self.maxHealth += 50
+                elif choice.lower == 'defendor':
+                    self.armorValue += 30
+                else:
+                    print('Please type the right perk from the list.')
+                    raise ValueError
+            except ValueError:
+                print('Please type the right perk from the list.')
 
 class Monster(Creature):
     def __init__(self, name, maxHealth, currentHealth, minDps, maxDps,
                  armorValue, evasion, critChance, potions, items, shield=None):
         super().__init__(name, maxHealth, currentHealth, minDps, maxDps,
-                         armorValue, evasion, critChance, potions, items, shield)
-
-
-    def goldDrop(self, player):
-        gold = random.randint(5, 20)
-        print(f'You have found {gold} gold!')
-        player.gold += gold
+                         armorValue, evasion, critChance, potions, items,
+                         shield, self.states)
 
     def death(self, items, potions, player):
         if self.currentHealth <= 0:
@@ -276,10 +349,11 @@ class Boss(Creature):
                  armorValue, evasion, critChance, potions, items, shield=None):
         super().__init__(name, maxHealth, currentHealth, minDps, maxDps,
                          armorValue, evasion, critChance, potions, items,
-                         shield)
+                         shield, self.states)
 
     def death(self, items, potions, player):
         if self.currentHealth <= 0:
+            print(f'{self.name} was slain!')
             time.sleep(1)
             self.itemDrop(items, player)
             time.sleep(1)
@@ -316,6 +390,10 @@ class Boss(Creature):
         n = random.random()
         if n < 0.5:
             potion = potions[1]
+            print(f'You have found {potion.name}!')
+            player.inventory.append(potion)
+        elif n < 0.7:
+            potion = potions[2]
             print(f'You have found {potion.name}!')
             player.inventory.append(potion)
         else:

@@ -123,15 +123,27 @@ class Ring(Item):
 
 
 class Potion(Item):
-    def __init__(self, name, type, rarity, value, heal):
+    def __init__(self, name, type, rarity, value):
         super().__init__(name, type, rarity, value)
-        self.heal = heal
 
     def itemView(self):
         attrs = vars(self)
         for key, value in attrs.items():
             print(f'{key} : {value}')
 
+
+class HealthPotion(Potion):
+    def __init__(self, name, type, rarity, value, heal):
+        super().__init__(name, type, rarity, value)
+        self.heal = heal
+
+
+class Antidote(Potion):
+    def __init__(self, name, type, rarity, value):
+        super().__init__(name, type, rarity, value)
+
+    def curePoison(self, player):
+        player.states.remove('poisoned')
 
 def strNone(value):
     if not value:
