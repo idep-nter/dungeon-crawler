@@ -6,7 +6,7 @@ import items as it
 class Creature:
     def __init__(self, name, maxHealth, currentHealth, minDps, maxDps,
                  armorValue, evasion, critChance, potions=None, items=None,
-                 shield=None):
+                 shield=None, expValue=None):
         self.name = name
         self.maxHealth = maxHealth
         self.currentHealth = currentHealth
@@ -16,6 +16,7 @@ class Creature:
         self.evasion = evasion
         self.critChance = critChance
         self.shield = shield
+        self.expValue = expValue
         self.states = []
 
     def attack(self, target):
@@ -298,12 +299,12 @@ class Player(Creature):
         self.lvl += 1
         print('LEVEL UP!')
         self.maxHealth += 20
-        print(f'Your max health is now {self.maxHealth}')
+        print('Max health +20!')
         if self.lvl % 4 == 0:
             self.choosePerk()
 
     def choosePerk(self): # check formatting
-        perks = {'Ninja' : '+0.1 evasion', 'Berserk' : '+0.1 critchance',
+        perks = {'Ninja' : '+0.1 evasion', 'Berserk' : '+0.1 crit chance',
                  'Bud Spancer' : '+50 max health', 'Defendor' : '+30 armor'}
         for key, value in perks.items():
             print(f'{key:^15} : {value:^15}')
@@ -311,12 +312,16 @@ class Player(Creature):
             try:
                 choice = input('Choose your new Perk!')
                 if choice.lower == 'ninja':
+                    self.perks.append('Ninja')
                     self.evasion += 0.1
                 elif choice.lower == 'berserk':
+                    self.perks.append('Berserk')
                     self.critChance += 0.1
                 elif choice.lower == 'bud spancer':
+                    self.perks.append('Bud Spancer')
                     self.maxHealth += 50
                 elif choice.lower == 'defendor':
+                    self.perks.append('Defendor')
                     self.armorValue += 30
                 else:
                     print('Please type the right perk from the list.')
@@ -324,12 +329,14 @@ class Player(Creature):
             except ValueError:
                 print('Please type the right perk from the list.')
 
+
 class Monster(Creature):
     def __init__(self, name, maxHealth, currentHealth, minDps, maxDps,
-                 armorValue, evasion, critChance, potions, items, shield=None):
+                 armorValue, evasion, critChance, potions, items, shield=None,
+                 expValue=None):
         super().__init__(name, maxHealth, currentHealth, minDps, maxDps,
                          armorValue, evasion, critChance, potions, items,
-                         shield, self.states)
+                         shield, expValue, self.states)
 
     def death(self, items, potions, player):
         if self.currentHealth <= 0:
@@ -341,15 +348,19 @@ class Monster(Creature):
             time.sleep(1)
             self.potionDrop(potions, player)
             time.sleep(1)
+            player.exp += self.expValue
+            print(f'You have gained {self.expValue} exp!')
             return True
         return False
 
+
 class Boss(Creature):
     def __init__(self, name, maxHealth, currentHealth, minDps, maxDps,
-                 armorValue, evasion, critChance, potions, items, shield=None):
+                 armorValue, evasion, critChance, potions, items, shield=None,
+                 expValue=None):
         super().__init__(name, maxHealth, currentHealth, minDps, maxDps,
                          armorValue, evasion, critChance, potions, items,
-                         shield, self.states)
+                         shield, expValue, self.states)
 
     def death(self, items, potions, player):
         if self.currentHealth <= 0:
@@ -361,6 +372,8 @@ class Boss(Creature):
             time.sleep(1)
             self.potionDrop(potions, player)
             time.sleep(1)
+            player.exp += self.expValue
+            print(f'You have gained {self.expValue} exp!')
             return True
         return False
 

@@ -89,17 +89,20 @@ items = {'common': {'weapon': [dagger, axe, longsword, greatsword,
                            ancientVigor]}
          }
 
-rat = cr.Monster('Rat', 20, 20, 1, 3, 0, 0.1, 0.2, potions, items)
-vileBat = cr.Monster('Vile Bat', 15, 1, 2, 3, 0, 0.3, 0.2, potions, items)
-zombie = cr.Monster('Zombie', 30, 30, 3, 5, 5, 0, 0.05, potions, items)
+rat = cr.Monster('Rat', 20, 20, 1, 3, 0, 0.1, 0.2, potions, items,
+                 expValue=random.randint(300, 500))
+vileBat = cr.Monster('Vile Bat', 15, 1, 2, 3, 0, 0.3, 0.2, potions, items,
+                     expValue=random.randint(300, 500))
+zombie = cr.Monster('Zombie', 30, 30, 3, 5, 5, 0, 0.05, potions, items,
+                    expValue=random.randint(400, 700))
 skeletonWarrior = cr.Monster('Skeleton Warrior', 25, 25, 3, 7, 20, 0.1, 0.1,
-                             potions, items)
+                             potions, items, expValue=random.randint(400, 700))
 lesserShade = cr.Monster('Lesser Shade', 10, 10, 2, 6, 0, 0.5, 0.1, potions,
-                         items)
+                         items, expValue=random.randint(300, 500))
 giantSpider = cr.Monster('Giant Spider', 25, 25, 3, 8, 10, 0.1, 0.1, potions,
-                         items)
+                         items, expValue=random.randint(400, 700))
 darkKnight = cr.Boss('Dark Knight', 80, 80, 10, 15, 50, 0.05, 0.1, potions,
-                     items, shield=True)
+                     items, shield=True, expValue=random.randint(15000, 2000))
 chest = ob.Chest()
 shrine = ob.Shrine()
 
@@ -211,7 +214,9 @@ class Game:
             player.attack(object)
         if isinstance(object, cr.Boss):
             if object.death(items, potions, player):
+                player.levelCheck()
                 print('VICTORY ACHIEVED')
+                player.states = []
                 self.flag = False
                 return True
         elif object.death(items, potions, player):
