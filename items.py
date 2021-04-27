@@ -6,6 +6,12 @@ class Item:
         self.value = value
         self.weight = weight
 
+    @staticmethod
+    def strNone(value):
+        if not value:
+            return '-'
+        return value
+
 
 class Weapon(Item):
     def __init__(self, name, type, rarity, value, weight, minDps, maxDps,
@@ -149,7 +155,3 @@ class Antidote(Potion):
 # class Regen(Potion):
 
 
-def strNone(value):
-    if not value:
-        return '-'
-    return value
