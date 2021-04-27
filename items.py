@@ -145,6 +145,10 @@ class Antidote(Potion):
     def curePoison(self, player):
         player.states.remove('poisoned')
 
+
+# class Regen(Potion):
+
+
 def strNone(value):
     if not value:
         return '-'

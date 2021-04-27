@@ -96,19 +96,20 @@ vileBat = cr.Monster('Vile Bat', 15, 1, 2, 3, 0, 0.3, 0.2, potions, items,
 zombie = cr.Monster('Zombie', 30, 30, 3, 5, 5, 0, 0.05, potions, items,
                     expValue=random.randint(400, 700))
 skeletonWarrior = cr.Monster('Skeleton Warrior', 25, 25, 3, 7, 20, 0.1, 0.1,
-                             potions, items, expValue=random.randint(400, 700))
+                             potions, items, shield=True,
+                             expValue=random.randint(400, 700))
 lesserShade = cr.Monster('Lesser Shade', 10, 10, 2, 6, 0, 0.5, 0.1, potions,
                          items, expValue=random.randint(300, 500))
 giantSpider = cr.Monster('Giant Spider', 25, 25, 3, 8, 10, 0.1, 0.1, potions,
                          items, expValue=random.randint(400, 700))
 darkKnight = cr.Boss('Dark Knight', 80, 80, 10, 15, 50, 0.05, 0.1, potions,
-                     items, shield=True, expValue=random.randint(15000, 2000))
+                     items, shield=True, expValue=random.randint(1500, 2000))
 chest = ob.Chest()
 shrine = ob.Shrine()
 
-map = [[lesserShade, vileBat, None, chest], [rat, chest, zombie, vileBat],
-       [chest, skeletonWarrior, shrine, chest], [rat, giantSpider, lesserShade,
-                                                 darkKnight]]
+
+mapObjects = [rat, vileBat, zombie, skeletonWarrior, lesserShade, giantSpider,
+              chest, shrine, None, None, None, None]
 
 
 class Level(list):
@@ -117,22 +118,36 @@ class Level(list):
         return "\n".join(' '.join(row) for row in self)
 
 
-
 class Game:
     markerX = 'X'
     markerO = 'O'
     ctrls = ['left', None, 'right', 'up', None, 'down']
     exit = 'quit'
     start = [2, 0]
-    default = [['?'] * 4 for i in range(4)]
+    default = [['?'] * 8 for i in range(5)]
+    mapObj = mapObjects
 
-    def __init__(self, map):
+    def __init__(self):
         self.flag = True
         self.level = Level(Game.default)
-        self.oLevel = Level(map)
+        self.oLevel = Level(mapGenerator(mapObjects))
         self.prevPos = Game.start[:]
         self.currPos = Game.start[:]
         self.movePlayer()
+
+    @staticmethod
+    def mapGenerator(mapObj):
+        map = []
+        for i in range(5):
+            for x in range(8):
+                line = []
+                object = random.choice(mapObj)
+                line.append(object)
+            map.append(line)
+        nList = random.randint(0, 4)
+        nIndex = random.randint(0, 7)
+        map[nList][nIndex] = darkKnight
+        return map
 
     def movePlayer(self):
         px, py = self.prevPos
@@ -185,17 +200,30 @@ class Game:
                     if self.battle(player, object, cx, cy):
                         pAction = False
 
-    def special(self, object, player):
+    @staticmethod
+    def special(object, player):
         if object == zombie:
-            object.regenerate(self)
-        elif object == giantSpider or object == rat:
-            if object.poison(self):
+            object.regenerate()
+        elif object == vileBat:
+            object.stealLife()
+        elif object == giantSpider and 'poisoned' not in player.states:
+            if object.poison():
                 player.states.append('poisoned')
+        elif object == shade and 'cursed' not in player.states:
+            if object.curse():
+                player.states.append('cursed')
+                player.minDps = round((player.minDps / 100) * 50)
+                player.maxDps = round((player.maxDps / 100) * 50)
+        elif object == rat and 'diseased' not in player.states:
+            if object.disease():
+                player.states.append('diseased')
+                player.maxHealth = round((player.maxHealth / 100) * 80)
         elif object == darkKnight:
-            if object.stun(self):
+            if object.stun():
                 player.states.append('stunned')
 
-    def stateCheck(self, player):
+    @staticmethod
+    def stateCheck(player):
         if player.states:
             if 'poisoned' in player.states:
                 n = random.randint(1, 5)
@@ -208,31 +236,39 @@ class Game:
         else:
             return True
 
+    @staticmethod
+    def restore(player):
+        if 'cursed' in player.states:
+            player.minDps = round((player.minDps / 50) * 100)
+            player.maxDps = round((player.maxDps / 50) * 100)
+        if 'diseased' in player.states:
+            player.maxHealth = round((player.maxHealth / 80) * 100)
+        player.states = []
+
     def battle(self, player, object, cx, cy):
         time.sleep(1)
-        if self.stateCheck(player):
+        if stateCheck(player):
             player.attack(object)
         if isinstance(object, cr.Boss):
             if object.death(items, potions, player):
                 player.levelCheck()
                 print('VICTORY ACHIEVED')
-                player.states = []
+                restore(player)
                 self.flag = False
                 return True
         elif object.death(items, potions, player):
             player.levelCheck()
             self.oLevel[cy][cx] = None
-            player.states = []
+            restore(player)
             return True
         time.sleep(1)
         object.attack(player)
-        self.special(object, player)
+        special(object, player)
         if player.death():
             print('YOU DIED')
             self.flag = False
             return True
         time.sleep(1)
-
 
     def command(self, player):
         eq = re.compile(r'equip ((\w+\s*)+)')
@@ -355,6 +391,6 @@ quit               exit game
 
 
 if __name__ == '__main__':
-    game = Game(map)
+    game = Game()
     game.play()
 

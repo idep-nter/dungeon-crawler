@@ -81,6 +81,13 @@ class Creature:
             print(f'{self.name} regenerated {hp} health!')
             self.currentHealth += hp
 
+    def stealLife(self, attack):
+        n = random.random()
+        if n < 0.3:
+            hp = attack
+            print(f'{self.name} stole {hp} health from you!')
+            self.currentHealth += hp
+
     def stun(self):
         n = random.random()
         if n < 0.3:
@@ -90,8 +97,22 @@ class Creature:
 
     def poison(self):
         n = random.random()
-        if n < 0.1:
+        if n < 0.2:
             print('You have been poisoned!')
+            return True
+        return False
+
+    def curse(self):
+        n = random.random()
+        if n < 0.5:
+            print('You have been cursed!')
+            return True
+        return False
+
+    def disease(self)
+        n = random.random()
+        if n < 0.2:
+            print('You got a disease!')
             return True
         return False
 
@@ -102,7 +123,7 @@ class Player(Creature):
                  maxWeight=100, currentWeight=0, gold=0, exp=0, lvl=0,
                  weapon=None, armor=None, ring1=None, ring2=None, shield=None):
         super().__init__(name, maxHealth, currentHealth, minDps, maxDps,
-                         armorValue, evasion, critChance, shield, self.states)
+                         armorValue, evasion, critChance, shield)
         self.maxWeight = maxWeight
         self.currentWeight = currentWeight
         self.inventory = []
@@ -115,6 +136,7 @@ class Player(Creature):
         self.ring2 = ring2
         self.shield = shield
         self.perks = []
+        self.states = []
 
     def showChar(self, player):
         attrs = vars(player)
@@ -305,7 +327,7 @@ class Player(Creature):
 
     def choosePerk(self): # check formatting
         perks = {'Ninja' : '+0.1 evasion', 'Berserk' : '+0.1 crit chance',
-                 'Bud Spancer' : '+50 max health', 'Defendor' : '+30 armor'}
+                 'Bud Spencer' : '+50 max health', 'Defendor' : '+30 armor'}
         for key, value in perks.items():
             print(f'{key:^15} : {value:^15}')
         while True:
@@ -317,8 +339,8 @@ class Player(Creature):
                 elif choice.lower == 'berserk':
                     self.perks.append('Berserk')
                     self.critChance += 0.1
-                elif choice.lower == 'bud spancer':
-                    self.perks.append('Bud Spancer')
+                elif choice.lower == 'bud spencer':
+                    self.perks.append('Bud Spencer')
                     self.maxHealth += 50
                 elif choice.lower == 'defendor':
                     self.perks.append('Defendor')
@@ -336,7 +358,8 @@ class Monster(Creature):
                  expValue=None):
         super().__init__(name, maxHealth, currentHealth, minDps, maxDps,
                          armorValue, evasion, critChance, potions, items,
-                         shield, expValue, self.states)
+                         shield, expValue)
+        self.states = []
 
     def death(self, items, potions, player):
         if self.currentHealth <= 0:
@@ -360,7 +383,8 @@ class Boss(Creature):
                  expValue=None):
         super().__init__(name, maxHealth, currentHealth, minDps, maxDps,
                          armorValue, evasion, critChance, potions, items,
-                         shield, expValue, self.states)
+                         shield, expValue)
+        self.states = []
 
     def death(self, items, potions, player):
         if self.currentHealth <= 0:
