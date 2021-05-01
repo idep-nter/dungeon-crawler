@@ -129,8 +129,9 @@ class Ring(Item):
 
 
 class Potion(Item):
-    def __init__(self, name, type, rarity, value):
+    def __init__(self, name, type, rarity, value, heal=None):
         super().__init__(name, type, rarity, value)
+        self.heal = heal
 
     def itemView(self):
         attrs = vars(self)
@@ -140,8 +141,7 @@ class Potion(Item):
 
 class HealthPotion(Potion):
     def __init__(self, name, type, rarity, value, heal):
-        super().__init__(name, type, rarity, value)
-        self.heal = heal
+        super().__init__(name, type, rarity, value, heal)
 
 
 class Antidote(Potion):
@@ -152,6 +152,7 @@ class Antidote(Potion):
         player.states.remove('poisoned')
 
 
-# class Regen(Potion):
-
+class RegenPotion(Potion):
+    def __init__(self, name, type, rarity, value, heal):
+        super().__init__(name, type, rarity, value, heal)
 

@@ -5,7 +5,7 @@ import items as it
 
 class Creature:
     def __init__(self, name, maxHealth, currentHealth, minDps, maxDps,
-                 armorValue, evasion, critChance, potions=None, items=None,
+                 armorValue, evasion, critChance, lvl, potions=None, items=None,
                  shield=None, expValue=None):
         self.name = name
         self.maxHealth = maxHealth
@@ -15,6 +15,9 @@ class Creature:
         self.armorValue = armorValue
         self.evasion = evasion
         self.critChance = critChance
+        self.lvl = lvl
+        self.potions = potions
+        self.items = items
         self.shield = shield
         self.expValue = expValue
         self.states = []
@@ -36,42 +39,57 @@ class Creature:
         else:
             print(f'{target.name} was hit by {attack}!')
         target.currentHealth -= attack
+        return attack
+
+    def creatureType(self):
+        if isinstance(self, Boss):
+            tMode = 2
+        else:
+            tMode = 1
+        return tMode
 
     def goldDrop(self, player):
-        gold = random.randint(5, 20)
+        tMode = self.creatureType()
+        baseGold = [5, 10]
+        goldDict = {}
+        for l in range(1, 11):
+            gMin = baseGold[0] * l * tMode
+            gMax = baseGold[1] * l * tMode
+            goldDict.setdefault(l, [gMin, gMax])
+        rng = goldDict[self.lvl]
+        gold = ranndom.randint(rng)
         print(f'You have found {gold} gold!')
         player.gold += gold
 
-
-    def itemDrop(self, items, player):
+    def itemDrop(self, player):
+        item = None
+        tMode = self.createreType()
+        iMod = self.lvl * 0.03
         n = random.random()
-        if n < 0.1:
-            item = self.randomItem(items, 'rare')
-        elif n < 0.3:
-            item = self.randomItem(items, 'uncommon')
-        else:
-            item = self.randomItem(items, 'common')
-        print(f'You have found {item.name}!')
-        player.inventory.append(item)
+        if n < 0.05 + iMod * tMode:
+            item = self.randomItem(self.items, 'epic')
+        if n < 0.1 + iMod * tMode:
+            item = self.randomItem(self.items, 'rare')
+        elif n < 0.2 + iMod * tMode:
+            item = self.randomItem(self.items, 'uncommon')
+        elif n < 0.5 + iMod * tMode:
+            item = self.randomItem(self.items, 'common')
+        if item:
+            print(f'You have found {item.name}!')
+            player.inventory.append(item)
 
-    def potionDrop(self, potions, player):
+    def potionDrop(self, player):
+        tMode = self.creatureType()
+        iMod = self.lvl * 0.05
         n = random.random()
-        if n < 0.3:
-            potion = potions[1]
-            print(f'You have found {potion.name}!')
-            player.inventory.append(potion)
-        elif n < 0.5:
-            potion = potions[3]
-            print(f'You have found {potion.name}!')
-            player.inventory.append(potion)
-        elif n < 0.8:
-            potion = potions[0]
+        if n < 0.3 + iMod * tMode:
+            potion = random.choice(self.potions)
             print(f'You have found {potion.name}!')
             player.inventory.append(potion)
 
-    def randomItem(self, items, rarity):
-        iType = random.choice(list(items[rarity]))
-        item = random.choice(list(items[rarity][iType]))
+    def randomItem(self, rarity):
+        iType = random.choice(list(self.items[rarity]))
+        item = random.choice(list(self.items[rarity][iType]))
         return item
 
     def regenerate(self):
@@ -109,7 +127,7 @@ class Creature:
             return True
         return False
 
-    def disease(self)
+    def disease(self):
         n = random.random()
         if n < 0.2:
             print('You got a disease!')
@@ -119,17 +137,16 @@ class Creature:
 
 class Player(Creature):
     def __init__(self, name, maxHealth=100, currentHealth=100, minDps=1,
-                 maxDps=4, armorValue=0, evasion=0.2, critChance=0.1,
-                 maxWeight=100, currentWeight=0, gold=0, exp=0, lvl=0,
-                 weapon=None, armor=None, ring1=None, ring2=None, shield=None):
+                 maxDps=2, armorValue=0, evasion=0.2, critChance=0.1, lvl=1,
+                 exp=0, maxWeight=100, currentWeight=0, gold=0, weapon=None,
+                 armor=None, ring1=None, ring2=None, shield=None):
         super().__init__(name, maxHealth, currentHealth, minDps, maxDps,
-                         armorValue, evasion, critChance, shield)
+                         armorValue, evasion, critChance, lvl, shield)
         self.maxWeight = maxWeight
         self.currentWeight = currentWeight
         self.inventory = []
         self.gold = gold
         self.exp = exp
-        self.lvl = lvl
         self.weapon = weapon
         self.armor = armor
         self.ring1 = ring1
@@ -286,6 +303,8 @@ class Player(Creature):
             else:
                 print(f'{heal} health healed!')
                 self.inventory.remove(potion)
+        elif isinstance(potion, it.Regen):
+            self.states.insert(0, ['regenerate', 5])
         elif isinstance(potion, it.Antidote):
             potion.curePoison(self)
             print('Poison was cured!')
@@ -354,22 +373,22 @@ class Player(Creature):
 
 class Monster(Creature):
     def __init__(self, name, maxHealth, currentHealth, minDps, maxDps,
-                 armorValue, evasion, critChance, potions, items, shield=None,
-                 expValue=None):
+                 armorValue, evasion, critChance, lvl, potions, items,
+                 shield=None, expValue=None):
         super().__init__(name, maxHealth, currentHealth, minDps, maxDps,
-                         armorValue, evasion, critChance, potions, items,
+                         armorValue, evasion, critChance, lvl, potions, items,
                          shield, expValue)
         self.states = []
 
-    def death(self, items, potions, player):
+    def death(self, player):
         if self.currentHealth <= 0:
             print(f'{self.name} was slain!')
             time.sleep(1)
-            self.itemDrop(items, player)
+            self.itemDrop(self.items, player)
             time.sleep(1)
             self.goldDrop(player)
             time.sleep(1)
-            self.potionDrop(potions, player)
+            self.potionDrop(self.potions, player)
             time.sleep(1)
             player.exp += self.expValue
             print(f'You have gained {self.expValue} exp!')
@@ -379,63 +398,31 @@ class Monster(Creature):
 
 class Boss(Creature):
     def __init__(self, name, maxHealth, currentHealth, minDps, maxDps,
-                 armorValue, evasion, critChance, potions, items, shield=None,
-                 expValue=None):
+                 armorValue, evasion, critChance, lvl, potions, items,
+                 shield=None, expValue=None):
         super().__init__(name, maxHealth, currentHealth, minDps, maxDps,
-                         armorValue, evasion, critChance, potions, items,
+                         armorValue, evasion, critChance, lvl, potions, items,
                          shield, expValue)
         self.states = []
 
-    def death(self, items, potions, player):
+    def death(self, player):
         if self.currentHealth <= 0:
             print(f'{self.name} was slain!')
             time.sleep(1)
-            self.itemDrop(items, player)
+            self.itemDrop(self.items, player)
+            self.itemDrop(self.items, player)
+            self.itemDrop(self.items, player)
             time.sleep(1)
             self.goldDrop(player)
             time.sleep(1)
-            self.potionDrop(potions, player)
+            self.potionDrop(self.potions, player)
+            self.potionDrop(self.potions, player)
             time.sleep(1)
             player.exp += self.expValue
             print(f'You have gained {self.expValue} exp!')
             return True
         return False
 
-    def itemDrop(self, items, player):
-        item = self.randomItem(items, 'rare')
-        print(f'You have found {item.name}!')
-        player.inventory.append(item)
-        n = random.random()
-        if n < 0.3:
-            item = self.randomItem(items, 'rare')
-        elif n < 0.5:
-            item = self.randomItem(items, 'uncommon')
-        else:
-            item = self.randomItem(items, 'common')
-        print(f'You have found {item.name}!')
-        player.inventory.append(item)
 
-    def goldDrop(self, player):
-        gold = random.randint(50, 100)
-        print(f'You have found {gold} gold!')
-        player.gold += gold
-
-    def potionDrop(self, potions, player):
-        potion = potions[1]
-        print(f'You have found {potion.name}!')
-        player.inventory.append(potion)
-        n = random.random()
-        if n < 0.5:
-            potion = potions[1]
-            print(f'You have found {potion.name}!')
-            player.inventory.append(potion)
-        elif n < 0.7:
-            potion = potions[2]
-            print(f'You have found {potion.name}!')
-            player.inventory.append(potion)
-        else:
-            potion = potions[0]
-            print(f'You have found {potion.name}!')
-            player.inventory.append(potion)
 
 
