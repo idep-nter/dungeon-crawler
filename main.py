@@ -110,27 +110,27 @@ items = {'common': {'weapon': [dagger, axe, longsword, greatsword,
                            ancientVigor]}
          }
 
-rat = cr.Monster('Rat', 20, 20, 1, 3, 0, 0.1, 0.2, 1, potions, items,
+rat = cr.Monster('Rat', 20, 1, 1, 3, 0, 0.1, 0.2, 1, potions, items,
                  expValue=random.randint(300, 500))
 vileBat = cr.Monster('Vile Bat', 15, 1, 2, 3, 0, 0.3, 0.2, 1, potions, items,
                      expValue=random.randint(300, 500))
-zombie = cr.Monster('Zombie', 30, 30, 3, 5, 5, 0, 0.05, 2, potions, items,
+zombie = cr.Monster('Zombie', 30, 1, 3, 5, 5, 0, 0.05, 2, potions, items,
                     expValue=random.randint(400, 700))
-skeletonWarrior = cr.Monster('Skeleton Warrior', 25, 25, 3, 7, 20, 0.1, 0.1, 2,
+skeletonWarrior = cr.Monster('Skeleton Warrior', 25, 1, 3, 7, 20, 0.1, 0.1, 2,
                              potions, items, shield=True,
                              expValue=random.randint(400, 700))
-lesserShade = cr.Monster('Lesser Shade', 10, 10, 2, 6, 0, 0.5, 0.1, 1, potions,
+lesserShade = cr.Monster('Lesser Shade', 10, 1, 2, 6, 0, 0.5, 0.1, 1, potions,
                          items, expValue=random.randint(300, 500))
-giantSpider = cr.Monster('Giant Spider', 25, 25, 3, 8, 10, 0.1, 0.1, 2, potions,
+giantSpider = cr.Monster('Giant Spider', 25, 1, 3, 8, 10, 0.1, 0.1, 2, potions,
                          items, expValue=random.randint(400, 700))
-darkKnight = cr.Boss('Dark Knight', 80, 80, 10, 15, 50, 0.05, 0.1, 4, potions,
+darkKnight = cr.Boss('Dark Knight', 80, 1, 10, 15, 50, 0.05, 0.1, 4, potions,
                      items, shield=True, expValue=random.randint(1500, 2000))
-chest = ob.Chest()
+chest = ob.Chest(potions, items)
 shrine = ob.Shrine()
 
 
 mapObjects = [rat, vileBat, zombie, skeletonWarrior, lesserShade, giantSpider,
-              chest, shrine, None, None, None, None]
+              chest, shrine, None, None]
 
 
 class Level(list):
@@ -181,10 +181,10 @@ class Game:
         try:
             px, py = self.prevPos
             cx, cy = self.currPos
-            if (-1 < cx < 4) and (-1 < cy < 4):
+            if (-1 < cx < 8) and (-1 < cy < 8):
                 if self.bossCheck():
-                    self.level[py][px] = Game.markerO #check coords
-                    self.level[cy][cx] = Game.markerX
+                    self.level[px][py] = Game.markerO
+                    self.level[cx][cy] = Game.markerX
                     return True
                 else:
                     return False
@@ -196,16 +196,16 @@ class Game:
 
     def bossCheck(self):
         cx, cy = self.currPos
-        object = self.oLevel[cy][cx]  #check coords
+        object = self.oLevel[cx][cy]
         if isinstance(object, cr.Boss):
             while True:
                 try:
                     q = input('You feel that something terribly dangerous '
                               'dwells in this room, do you really want to '
-                              'continue?')
-                    if q.lower == 'yes' or q.lower == 'y':
+                              'continue? ')
+                    if q.lower() == 'yes' or q.lower() == 'y':
                         return True
-                    elif q.lower == 'no' or q.lower == 'n':
+                    elif q.lower() == 'no' or q.lower() == 'n':
                         return False
                     else:
                         raise ValueError
@@ -215,23 +215,24 @@ class Game:
 
     def action(self, player):
         cx, cy = self.currPos
-        object = self.oLevel[cy][cx]
+        object = self.oLevel[cx][cy]
         if isinstance(object, ob.Shrine):
             print('You see some kind of shrine before you and suddenly feel '
                   'strength coming back to your body.')
             object.heal(player)
-            self.oLevel[cy][cx] = None
+            self.oLevel[cx][cy] = None
         elif isinstance(object, ob.Chest):
             print('You see a wooden chest before you. What treasures does it '
                   'hold? You shiver with excitement as you opening it...')
+            time.sleep(1)
             object.open(items, potions, player)
-            self.oLevel[cy][cx] = None
+            self.oLevel[cx][cy] = None
         elif isinstance(object, cr.Monster):
             print(f'Damn, you see a {object.name}!')
             pAction = True
             while pAction:
                 c = self.command(player)
-                if c == 'auto-attack':
+                if c == 'auto-attack' or 'auto':
                     while True:
                         if self.battle(player, object, cx, cy):
                             pAction = False
@@ -244,7 +245,7 @@ class Game:
             pAction = True
             while pAction:
                 c = self.command(player)
-                if c == 'auto-attack':
+                if c == 'auto-attack' or 'auto':
                     while True:
                         if self.battle(player, object, cx, cy):
                             pAction = False
@@ -258,11 +259,11 @@ class Game:
         if object == zombie:
             object.regenerate()
         elif object == vileBat:
-            object.stealLife(attack)
+            object.stealLife(attack) # if attack != False
         elif object == giantSpider and 'poisoned' not in player.states:
             if object.poison():
                 player.states.append('poisoned')
-        elif object == shade and 'cursed' not in player.states:
+        elif object == lesserShade and 'cursed' not in player.states:
             if object.curse():
                 player.states.append('cursed')
                 player.minDps = round((player.minDps / 100) * 50)
@@ -309,30 +310,32 @@ class Game:
 
     def battle(self, player, object, cx, cy):
         time.sleep(1)
-        if stateCheck(player):
+        if self.stateCheck(player):
             player.attack(object)
         if isinstance(object, cr.Boss):
-            if object.death(items, potions, player):
+            if object.death(player):
                 player.levelCheck()
                 print('VICTORY ACHIEVED')
-                restore(player)
+                time.sleep(1)
+                self.restore(player)
                 self.flag = False
                 return True
-        elif object.death(items, potions, player):
+        elif object.death(player):
             player.levelCheck()
-            self.oLevel[cy][cx] = None
-            restore(player)
+            time.sleep(1)
+            self.oLevel[cx][cy] = None
+            self.restore(player)
             return True
         time.sleep(1)
         att = object.attack(player)
-        special(object, player, att)
+        self.special(object, player, att)
         if player.death():
             print('YOU DIED')
             self.flag = False
             return True
         time.sleep(1)
 
-    def command(self, player):
+    def command(self, player): # solve ' in items
         eq = re.compile(r'equip ((\w+\s*)+)')
         uneq = re.compile(r'unequip ((\w+\s*)+)')
         view = re.compile(r'view ((\w+\s*)+)')
@@ -340,7 +343,7 @@ class Game:
         while True:
             try:
                 a = input('\nWhat\'s your action? ').lower()
-                if a == 'attack' or a == 'auto-attack':
+                if a == 'attack' or a == 'auto-attack' or a == 'auto':
                     return a
                 if a == 'help':
                     help()
@@ -395,8 +398,9 @@ class Game:
                 if ctrl in Game.ctrls:
                     d = Game.ctrls.index(ctrl)
                     self.prevPos = self.currPos[:]
-                    self.currPos[d > 2] += d - (1 if d < 3 else 4)
+                    self.currPos[d <= 2] += d - (1 if d < 3 else 4)
                     if self.movePlayer():
+                        time.sleep(1)
                         self.action(player)
                     else:
                         self.currPos = self.prevPos[:]

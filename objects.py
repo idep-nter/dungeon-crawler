@@ -10,43 +10,53 @@ class Shrine:
 
 
 class Chest:
-    def __init__(self):
-        pass
+    def __init__(self, potions, items):
+        self.potions = potions
+        self.items = items
 
-    def open(self, items, potions, player):
-        self.itemFind(items, player)
-        self.potionFind(potions, player)
+    def open(self, player):
+        self.itemFind(player)
+        self.potionFind(player)
+        self.goldFind(player)
         self.trap(player)
 
-    def itemFind(self, items, player):
-        n = random.random()
-        if n < 0.3:
-            item = self.randomItem(items, 'rare')
-        elif n < 0.5:
-            item = self.randomItem(items, 'uncommon')
-        else:
-            item = self.randomItem(items, 'common')
-        print(f'You have found {item.name}!')
-        player.inventory.append(item)
+    @staticmethod
+    def goldFind(player):
+        rng = [20, 50]
+        gold = random.randint(rng[0], rng[1])
+        print(f'You have found {gold} gold!')
+        player.gold += gold
 
-    def randomItem(self, items, rarity):
-        iType = random.choice(list(items[rarity]))
-        item = random.choice(list(items[rarity][iType]))
+    def itemFind(self, player):
+        item = None
+        n = random.random()
+        if n < 0.1:
+            item = self.randomItem('epic')
+        if n < 0.2:
+            item = self.randomItem('rare')
+        elif n < 0.5:
+            item = self.randomItem('uncommon')
+        elif n < 0.8:
+            item = self.randomItem('common')
+        if item:
+            print(f'You have found {item.name}!')
+            player.inventory.append(item)
+
+    def randomItem(self, rarity):
+        iType = random.choice(list(self.items[rarity]))
+        item = random.choice(list(self.items[rarity][iType]))
         return item
 
-    def potionFind(self, potions, player):
+    def potionFind(self, player):
         n = random.random()
         if n < 0.5:
-            potion = potions[1]
-            print(f'You have found {potion.name}!')
-            player.inventory.append(potion)
-        else:
-            potion = potions[0]
+            potion = random.choice(self.potions)
             print(f'You have found {potion.name}!')
             player.inventory.append(potion)
 
-    def trap(self, player):
+    @staticmethod
+    def trap(player):
         if random.random() < 0.1:
-            dmg = random.randint(10, 30)
+            dmg = random.randint(10, 20)
             player.currentHealth -= dmg
             print(f'There was a trap! You have been hit by {dmg}!')

@@ -6,12 +6,6 @@ class Item:
         self.value = value
         self.weight = weight
 
-    @staticmethod
-    def strNone(value):
-        if not value:
-            return '-'
-        return value
-
 
 class Weapon(Item):
     def __init__(self, name, type, rarity, value, weight, minDps, maxDps,
@@ -156,3 +150,8 @@ class RegenPotion(Potion):
     def __init__(self, name, type, rarity, value, heal):
         super().__init__(name, type, rarity, value, heal)
 
+
+def strNone(value):
+    if not value:
+        return '-'
+    return value

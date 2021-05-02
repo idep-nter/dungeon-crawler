@@ -57,23 +57,23 @@ class Creature:
             gMax = baseGold[1] * l * tMode
             goldDict.setdefault(l, [gMin, gMax])
         rng = goldDict[self.lvl]
-        gold = ranndom.randint(rng)
+        gold = random.randint(rng[0], rng[1])
         print(f'You have found {gold} gold!')
         player.gold += gold
 
     def itemDrop(self, player):
         item = None
-        tMode = self.createreType()
+        tMode = self.creatureType()
         iMod = self.lvl * 0.03
         n = random.random()
         if n < 0.05 + iMod * tMode:
-            item = self.randomItem(self.items, 'epic')
+            item = self.randomItem('epic')
         if n < 0.1 + iMod * tMode:
-            item = self.randomItem(self.items, 'rare')
+            item = self.randomItem('rare')
         elif n < 0.2 + iMod * tMode:
-            item = self.randomItem(self.items, 'uncommon')
+            item = self.randomItem('uncommon')
         elif n < 0.5 + iMod * tMode:
-            item = self.randomItem(self.items, 'common')
+            item = self.randomItem('common')
         if item:
             print(f'You have found {item.name}!')
             player.inventory.append(item)
@@ -135,7 +135,7 @@ class Creature:
         return False
 
 
-class Player(Creature):
+class Player(Creature): # sort stats
     def __init__(self, name, maxHealth=100, currentHealth=100, minDps=1,
                  maxDps=2, armorValue=0, evasion=0.2, critChance=0.1, lvl=1,
                  exp=0, maxWeight=100, currentWeight=0, gold=0, weapon=None,
@@ -155,11 +155,13 @@ class Player(Creature):
         self.perks = []
         self.states = []
 
-    def showChar(self, player):
+    def showChar(self, player): # add exp/exp
         attrs = vars(player)
         for key, value in attrs.items():
             if key == 'inventory' or key == 'gold':
                 continue
+            if key == 'perks' or key == 'states': # add if empty
+                print(f'{key:^15} : {value}') # check
             if isinstance(value, it.Item):
                 print(f'{key:^15} : {value.name:^15}')
             else:
@@ -348,22 +350,26 @@ class Player(Creature):
         perks = {'Ninja' : '+0.1 evasion', 'Berserk' : '+0.1 crit chance',
                  'Bud Spencer' : '+50 max health', 'Defendor' : '+30 armor'}
         for key, value in perks.items():
-            print(f'{key:^15} : {value:^15}')
+            print(f'{key:<15} : {value:>15}')
         while True:
             try:
                 choice = input('Choose your new Perk!')
-                if choice.lower == 'ninja':
+                if choice.lower() == 'ninja':
                     self.perks.append('Ninja')
                     self.evasion += 0.1
-                elif choice.lower == 'berserk':
+                    return True
+                elif choice.lower() == 'berserk':
                     self.perks.append('Berserk')
                     self.critChance += 0.1
-                elif choice.lower == 'bud spencer':
+                    return True
+                elif choice.lower() == 'bud spencer':
                     self.perks.append('Bud Spencer')
                     self.maxHealth += 50
-                elif choice.lower == 'defendor':
+                    return True
+                elif choice.lower() == 'defendor':
                     self.perks.append('Defendor')
                     self.armorValue += 30
+                    return True
                 else:
                     print('Please type the right perk from the list.')
                     raise ValueError
@@ -384,11 +390,11 @@ class Monster(Creature):
         if self.currentHealth <= 0:
             print(f'{self.name} was slain!')
             time.sleep(1)
-            self.itemDrop(self.items, player)
+            self.itemDrop(player)
             time.sleep(1)
             self.goldDrop(player)
             time.sleep(1)
-            self.potionDrop(self.potions, player)
+            self.potionDrop(player)
             time.sleep(1)
             player.exp += self.expValue
             print(f'You have gained {self.expValue} exp!')
@@ -409,14 +415,14 @@ class Boss(Creature):
         if self.currentHealth <= 0:
             print(f'{self.name} was slain!')
             time.sleep(1)
-            self.itemDrop(self.items, player)
-            self.itemDrop(self.items, player)
-            self.itemDrop(self.items, player)
+            self.itemDrop(player)
+            self.itemDrop(player)
+            self.itemDrop(player)
             time.sleep(1)
             self.goldDrop(player)
             time.sleep(1)
-            self.potionDrop(self.potions, player)
-            self.potionDrop(self.potions, player)
+            self.potionDrop(player)
+            self.potionDrop(player)
             time.sleep(1)
             player.exp += self.expValue
             print(f'You have gained {self.expValue} exp!')
