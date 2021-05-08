@@ -1,4 +1,5 @@
 import random
+import time
 
 
 class Shrine:
@@ -16,8 +17,11 @@ class Chest:
 
     def open(self, player):
         self.itemFind(player)
+        time.sleep(1)
         self.potionFind(player)
+        time.sleep(1)
         self.goldFind(player)
+        time.sleep(1)
         self.trap(player)
 
     @staticmethod
@@ -56,7 +60,7 @@ class Chest:
 
     @staticmethod
     def trap(player):
-        if random.random() < 0.1:
+        if random.random() < 0.2:
             dmg = random.randint(10, 20)
             player.currentHealth -= dmg
             print(f'There was a trap! You have been hit by {dmg}!')

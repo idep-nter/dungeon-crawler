@@ -4,10 +4,11 @@ import items as it
 
 
 class Creature:
-    def __init__(self, name, maxHealth, currentHealth, minDps, maxDps,
-                 armorValue, evasion, critChance, lvl, potions=None, items=None,
+    def __init__(self, name, lvl, maxHealth, currentHealth, minDps, maxDps,
+                 armorValue, evasion, critChance, potions=None, items=None,
                  shield=None, expValue=None):
         self.name = name
+        self.lvl = lvl
         self.maxHealth = maxHealth
         self.currentHealth = currentHealth
         self.minDps = minDps
@@ -15,12 +16,11 @@ class Creature:
         self.armorValue = armorValue
         self.evasion = evasion
         self.critChance = critChance
-        self.lvl = lvl
         self.potions = potions
         self.items = items
         self.shield = shield
         self.expValue = expValue
-        self.states = []
+        self.status = []
 
     def attack(self, target):
         attack = random.randint(self.minDps, self.maxDps)
@@ -135,37 +135,50 @@ class Creature:
         return False
 
 
-class Player(Creature): # sort stats
-    def __init__(self, name, maxHealth=100, currentHealth=100, minDps=1,
-                 maxDps=2, armorValue=0, evasion=0.2, critChance=0.1, lvl=1,
-                 exp=0, maxWeight=100, currentWeight=0, gold=0, weapon=None,
+class Player(Creature):
+    def __init__(self, name, lvl=1, exp=0, maxHealth=100, currentHealth=100,
+                 minDps=1, maxDps=2, armorValue=0, evasion=0.2, critChance=0.1,
+                 maxWeight=100, currentWeight=0, gold=0, weapon=None,
                  armor=None, ring1=None, ring2=None, shield=None):
-        super().__init__(name, maxHealth, currentHealth, minDps, maxDps,
-                         armorValue, evasion, critChance, lvl, shield)
+        super().__init__(name, lvl, maxHealth, currentHealth, minDps, maxDps,
+                         armorValue, evasion, critChance, shield)
+        self.exp = exp
         self.maxWeight = maxWeight
         self.currentWeight = currentWeight
-        self.inventory = []
         self.gold = gold
-        self.exp = exp
         self.weapon = weapon
         self.armor = armor
         self.ring1 = ring1
         self.ring2 = ring2
         self.shield = shield
+        self.inventory = []
         self.perks = []
-        self.states = []
+        self.status = []
 
-    def showChar(self, player): # add exp/exp
-        attrs = vars(player)
+    def showChar(self):
+        exp = f'{self.exp}/{int(self.lvl * 1000 * 1.5)}'
+        health = f'{self.currentHealth}/{self.maxHealth}'
+        dps = f'{self.minDps}-{self.maxDps}'
+        weight = f'{self.currentWeight}/{self.maxWeight}'
+        evasion = f'{int(self.evasion * 100)} %'
+        critChance = f'{int(self.critChance * 100)} %'
+        attrs = {'Name': self.name, 'Level': self.lvl, 'Experience': exp,
+                 'Health': health, 'Weight': weight, 'DPS': dps, 'Armor Value':
+                 self.armorValue, 'Evasion': evasion, 'Crit Chance':
+                 critChance, 'Weapon': self.weapon, 'Armor': self.armor,
+                 'Ring 1': self.ring1, 'Ring 2': self.ring2,
+                 'Status':self.status, 'Perks': self.perks}
         for key, value in attrs.items():
-            if key == 'inventory' or key == 'gold':
-                continue
-            if key == 'perks' or key == 'states': # add if empty
-                print(f'{key:^15} : {value}') # check
-            if isinstance(value, it.Item):
+            if key == 'Perks' or key == 'Status':
+                value = strNone(value)
+                if value == '-':
+                    print(f'{key:^15} : {value:^15}')
+                else:
+                    print(f'{key:^15} : {value}') #check
+            elif isinstance(value, it.Item):
                 print(f'{key:^15} : {value.name:^15}')
             else:
-                value = it.strNone(value)
+                value = strNone(value)
                 print(f'{key:^15} : {value:^15}')
 
     def showInventory(self):
@@ -306,7 +319,7 @@ class Player(Creature): # sort stats
                 print(f'{heal} health healed!')
                 self.inventory.remove(potion)
         elif isinstance(potion, it.Regen):
-            self.states.insert(0, ['regenerate', 5])
+            self.status.insert(0, ['regenerate', 5])
         elif isinstance(potion, it.Antidote):
             potion.curePoison(self)
             print('Poison was cured!')
@@ -346,11 +359,11 @@ class Player(Creature): # sort stats
         if self.lvl % 4 == 0:
             self.choosePerk()
 
-    def choosePerk(self): # check formatting
-        perks = {'Ninja' : '+0.1 evasion', 'Berserk' : '+0.1 crit chance',
-                 'Bud Spencer' : '+50 max health', 'Defendor' : '+30 armor'}
+    def choosePerk(self):
+        perks = {'Ninja': '+0.1 evasion', 'Berserk': '+0.1 crit chance',
+                 'Bud Spencer': '+50 max health', 'Defendor': '+30 armor'}
         for key, value in perks.items():
-            print(f'{key:<15} : {value:>15}')
+            print(f'{key:^15} : {value:^15}')
         while True:
             try:
                 choice = input('Choose your new Perk!')
@@ -378,13 +391,13 @@ class Player(Creature): # sort stats
 
 
 class Monster(Creature):
-    def __init__(self, name, maxHealth, currentHealth, minDps, maxDps,
-                 armorValue, evasion, critChance, lvl, potions, items,
+    def __init__(self, name,  lvl, maxHealth, currentHealth, minDps, maxDps,
+                 armorValue, evasion, critChance, potions, items,
                  shield=None, expValue=None):
-        super().__init__(name, maxHealth, currentHealth, minDps, maxDps,
-                         armorValue, evasion, critChance, lvl, potions, items,
+        super().__init__(name,  lvl, maxHealth, currentHealth, minDps, maxDps,
+                         armorValue, evasion, critChance, potions, items,
                          shield, expValue)
-        self.states = []
+        self.status = []
 
     def death(self, player):
         if self.currentHealth <= 0:
@@ -403,13 +416,13 @@ class Monster(Creature):
 
 
 class Boss(Creature):
-    def __init__(self, name, maxHealth, currentHealth, minDps, maxDps,
-                 armorValue, evasion, critChance, lvl, potions, items,
+    def __init__(self, name,  lvl, maxHealth, currentHealth, minDps, maxDps,
+                 armorValue, evasion, critChance, potions, items,
                  shield=None, expValue=None):
-        super().__init__(name, maxHealth, currentHealth, minDps, maxDps,
-                         armorValue, evasion, critChance, lvl, potions, items,
+        super().__init__(name,  lvl, maxHealth, currentHealth, minDps, maxDps,
+                         armorValue, evasion, critChance, potions, items,
                          shield, expValue)
-        self.states = []
+        self.status = []
 
     def death(self, player):
         if self.currentHealth <= 0:
@@ -430,5 +443,9 @@ class Boss(Creature):
         return False
 
 
+def strNone(value):
+    if not value:
+        return '-'
+    return value
 
 

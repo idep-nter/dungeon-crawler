@@ -5,87 +5,87 @@ import items as it
 import objects as ob
 import random
 
-dagger = it.Dagger('Dagger', 'dagger', 'common', 3, 2, 2, 4, 0.2)
-axe = it.SmallAxe('Axe', 'small axe', 'common', 5, 5, 3, 6, 0.1)
-longsword = it.Longsword('Longsword', 'longsword', 'common', 5, 4, 4, 7, 0.05)
-greatsword = it.Greatsword('Greatsword', 'greatsword', 'common', 8, 8, 6, 10,
-                           0.1)
-greataxe = it.Greataxe('Greataxe', 'greataxe', 'common', 9, 10, 5, 11, 0.15)
-swiftDagger = it.Dagger('Swift Dagger', 'dagger', 'uncommon', 7, 2, 3, 7, 0.2)
-battleAxe = it.SmallAxe('Battle Axe', 'small axe', 'uncommon', 8, 5, 4, 9, 0.1)
-noblemansSword = it.Longsword('Nobleman\'s sword', 'longsword', 'uncommon', 8,
-                              4, 6, 11, 0.05)
-balancedGreatSword = it.Greatsword('Balanced Greatsword', 'greatsword',
-                                   'uncommon', 13, 8, 9, 15, 0.1)
-chieftainsGreataxe = it.Greataxe('Chieftain\'s Greataxe', 'greataxe',
-                                 'uncommon', 12, 10, 8, 14, 0.15)
-shadowStrike = it.Dagger('Shadow Strike', 'dagger', 'rare', 23, 2, 8, 14,
-                         0.2)
-peaceMaker = it.SmallAxe('Peace Maker', 'small axe', 'rare', 28, 6, 11, 17,
-                         0.1)
-oathKeeper = it.Longsword('Oath Keeper', 'longsword', 'rare', 26, 4, 13, 18,
-                          0.05)
-soulReaper = it.Greatsword('Soul Reaper', 'greatsword', 'rare', 35, 10, 20,
-                           28, 0.1)
-rapture = it.Greataxe('Rapture', 'greataxe', 'rare', 37, 11, 18, 27, 0.15)
-sinisterCarver = it.Dagger('Sinister Carver', 'dagger', 'epic', 50, 2, 17, 25,
-                           0.2)
-harbinger = it.SmallAxe('Harbinger', 'small axe', 'epic', 56, 6, 23, 30, 0.1)
-blindJustice = it.Longsword('Blind Justice', 'longsword', 'epic', 58, 4, 26, 32,
-                            0.05)
-stormbringer = it.Greatsword('Stormbringer', 'greatsword', 'epic', 72, 12, 39,
-                             45, 0.1)
-eclipse = it.Greataxe('Eclipse', 'greataxe', 'epic', 78, 12, 36, 44, 0.15)
-smallShield = it.SmallShield('Small Shield', 'small shield', 'common', 4, 5, 5,
-                             -0.1)
-greatshield = it.Greatshield('Greatshield', 'greatshield', 'common', 6, 10, 11,
-                             -0.2)
-compactShied = it.SmallShield('Compact Shield', 'small shield', 'uncommon', 8,
-                              5, 8, -0.1)
-sturdyGreatshield = it.SmallShield('Sturdy Greatshield', 'greatshield',
-                                   'uncommon', 10, 5, 15, -0.2)
-dawnGuard = it.SmallShield('Dawn Guard', 'small shield', 'rare', 16, 6, 16,
-                           -0.1)
-heroWarden = it.Greatshield('Hero Warden', 'greatshield', 'rare', 19, 12,
-                            27, -0.2)
-tranquility = it.SmallShield('Tranquility', 'small shield', 'epic', 35, 5, 27,
-                             -0.1)
-theSentry = it.Greatshield('The Sentry', 'greatshield', 'epic', 40, 13, 38,
-                           -0.2)
-leatherArmor = it.LightArmor('Leather Armor', 'light armor', 'common', 8, 10,
-                             16, -0.1)
-plateArmor = it.HeavyArmor('Plate Armor', 'heavy armor', 'common', 13, 32, 35,
-                           -0.2)
-scoutsLeatherArmor = it.LightArmor('Scout\'s Leather Armor', 'light armor',
-                                   'uncommon', 8, 10, 25, -0.1)
-knightsPlateArmor = it.HeavyArmor('Knight\'s Plate Armor', 'heavy armor',
-                                  'uncommon', 13, 32, 41, -0.2)
-soulOfTheEast = it.LightArmor('Soul of the East', 'light armor', 'rare', 38,
-                              11, 28, -0.1)
-twilightIronArmor = it.HeavyArmor('Twilight Iron Armor', 'heavy armor',
-                                  'rare', 34, 36, 55, -0.2)
-favorOfPhantoms = it.LightArmor('Favor of Phantoms', 'light armor', 'epic', 62,
-                                10, 48, -0.1)
-cryOfTheBerserker = it.HeavyArmor('Cry of the Berserker', 'heavy armor', 'epic',
-                                  68, 36, 88, -0.2)
-silverRing = it.Ring('Silver Ring', 'ring', 'common', 3)
-goldRing = it.Ring('Gold Ring', 'ring', 'uncommon', 6)
-jasperWhisper = it.Ring('Jasper Whisper', 'ring', 'rare', 12, evasion=0.1)
-lunarShield = it.Ring('Lunar Shield', 'ring', 'rare', 11, armorValue=15)
-jadeMoon = it.Ring('Jade Moon', 'ring', 'rare', 15, critChance=0.1)
-emeraldFlame = it.Ring('Emerald Flame', 'ring', 'rare', 13, minDps=5,
+dagger = it.Dagger('Dagger', 'Dagger', 'Common', 3, 2, 4, 0.2, 2)
+axe = it.SmallAxe('Axe', 'Small Axe', 'Common', 5, 3, 6, 0.1, 5)
+longsword = it.Longsword('Longsword', 'Longsword', 'Common', 5, 4, 7, 0.05, 4)
+greatsword = it.Greatsword('Greatsword', 'Greatsword', 'Common', 8, 6, 10,
+                           0.1, 8)
+greataxe = it.Greataxe('Greataxe', 'Greataxe', 'Common', 9, 5, 11, 0.15, 10)
+swiftDagger = it.Dagger('Swift Dagger', 'Dagger', 'Uncommon', 7, 3, 7, 0.2, 2)
+battleAxe = it.SmallAxe('Battle Axe', 'Small Axe', 'Uncommon', 8, 4, 9, 0.1, 5)
+noblemansSword = it.Longsword('Nobleman\'s sword', 'Longsword', 'Uncommon', 8,
+                              6, 11, 0.05, 4)
+balancedGreatSword = it.Greatsword('Balanced Greatsword', 'Greatsword',
+                                   'Uncommon', 13, 9, 15, 0.1, 8)
+chieftainsGreataxe = it.Greataxe('Chieftain\'s Greataxe', 'Greataxe',
+                                 'Uncommon', 12, 8, 14, 0.15, 10)
+shadowStrike = it.Dagger('Shadow Strike', 'Dagger', 'Rare', 23, 8, 14,
+                         0.2, 2)
+peaceMaker = it.SmallAxe('Peace Maker', 'Small Axe', 'Rare', 28, 11, 17,
+                         0.1, 6)
+oathKeeper = it.Longsword('Oath Keeper', 'Longsword', 'Rare', 26, 13, 18,
+                          0.05, 4)
+soulReaper = it.Greatsword('Soul Reaper', 'Greatsword', 'Rare', 35, 20,
+                           28, 0.1, 10)
+rapture = it.Greataxe('Rapture', 'Greataxe', 'Rare', 37, 18, 27, 0.15, 11)
+sinisterCarver = it.Dagger('Sinister Carver', 'Dagger', 'Epic', 50, 17, 25,
+                           0.2, 2)
+harbinger = it.SmallAxe('Harbinger', 'Small Axe', 'Epic', 56, 23, 30, 0.1, 6)
+blindJustice = it.Longsword('Blind Justice', 'Longsword', 'Epic', 58, 26, 32,
+                            0.05, 4)
+stormbRinger = it.Greatsword('StormbRinger', 'Greatsword', 'Epic', 72, 39,
+                             45, 0.1, 12)
+eclipse = it.Greataxe('Eclipse', 'Greataxe', 'Epic', 78, 36, 44, 0.15, 36)
+smallShield = it.SmallShield('Small Shield', 'Small Shield', 'Common', 4, 5,
+                             -0.1, 5)
+greatshield = it.Greatshield('Greatshield', 'Greatshield', 'Common', 6, 11,
+                             -0.2, 10)
+compactShied = it.SmallShield('Compact Shield', 'Small Shield', 'Uncommon', 8,
+                              8, -0.1, 5)
+sturdyGreatshield = it.SmallShield('Sturdy Greatshield', 'Greatshield',
+                                   'Uncommon', 10, 15, -0.2, 11)
+dawnGuard = it.SmallShield('Dawn Guard', 'Small Shield', 'Rare', 16, 16,
+                           -0.1, 6)
+heroWarden = it.Greatshield('Hero Warden', 'Greatshield', 'Rare', 19, 27, -0.2,
+                            12)
+tranquility = it.SmallShield('Tranquility', 'Small Shield', 'Epic', 35, 27,
+                             -0.1, 5)
+theSentry = it.Greatshield('The Sentry', 'Greatshield', 'Epic', 40, 38, -0.2,
+                           13)
+leatherArmor = it.LightArmor('Leather Armor', 'Light Armor', 'Common', 8, 16,
+                             -0.1, 10)
+plateArmor = it.HeavyArmor('Plate Armor', 'Heavy Armor', 'Common', 13, 35, -0.2,
+                           32)
+scoutsLeatherArmor = it.LightArmor('Scout\'s Leather Armor', 'Light Armor',
+                                   'Uncommon', 8, 25, -0.1, 10)
+knightsPlateArmor = it.HeavyArmor('Knight\'s Plate Armor', 'Heavy Armor',
+                                  'Uncommon', 13, 41, -0.2, 32)
+soulOfTheEast = it.LightArmor('Soul of the East', 'Light Armor', 'Rare', 38,
+                              28, -0.1, 11)
+twilightIronArmor = it.HeavyArmor('Twilight Iron Armor', 'Heavy Armor',
+                                  'Rare', 34, 55, -0.2, 36)
+favorOfPhantoms = it.LightArmor('Favor of Phantoms', 'Light Armor', 'Epic', 62,
+                                48, -0.1, 8)
+cryOfTheBerserker = it.HeavyArmor('Cry of the Berserker', 'Heavy Armor', 'Epic',
+                                  68, 88, -0.2, 40)
+silverRing = it.Ring('Silver Ring', 'Ring', 'Common', 3)
+goldRing = it.Ring('Gold Ring', 'Ring', 'Uncommon', 6)
+jasperWhisper = it.Ring('Jasper Whisper', 'Ring', 'Rare', 12, evasion=0.1)
+lunarShield = it.Ring('Lunar Shield', 'Ring', 'Rare', 11, armorValue=15)
+jadeMoon = it.Ring('Jade Moon', 'Ring', 'Rare', 15, critChance=0.1)
+emeraldFlame = it.Ring('Emerald Flame', 'Ring', 'Rare', 13, minDps=5,
                        maxDps=10)
-lavishSpirit = it.Ring('Lavish Spirit', 'ring', 'epic', 25, evasion=0.2)
-moltenCore = it.Ring('Molten Core', 'ring', 'epic', 22, armorValue=32)
-forsakenPromise = it.Ring('Forsaken Promise', 'ring', 'epic', 26,
+lavishSpirit = it.Ring('Lavish Spirit', 'Ring', 'Epic', 25, evasion=0.2)
+moltenCore = it.Ring('Molten Core', 'Ring', 'Epic', 22, armorValue=32)
+forsakenPromise = it.Ring('Forsaken Promise', 'Ring', 'Epic', 26,
                           critChance=0.2)
-ancientVigor = it.Ring('Ancient Vigor', 'ring', 'epic', 25, minDps=11,
+ancientVigor = it.Ring('Ancient Vigor', 'Ring', 'Epic', 25, minDps=11,
                        maxDps=18)
-smallHealthPotion = it.HealthPotion('Small Health Potion', 'potion', 'common',
+smallHealthPotion = it.HealthPotion('Small Health Potion', 'Potion', 'Common',
                                     10, 20)
-healthPotion = it.HealthPotion('Health Potion', 'potion', 'common', 20, 40)
-regen = it.RegenPotion('Regeneration Potion', 'potion', 'common', 15, 5)
-antidote = it.Antidote('Antidote', 'potion', 'common', 10)
+healthPotion = it.HealthPotion('Health Potion', 'Potion', 'Common', 20, 40)
+regen = it.RegenPotion('Regeneration Potion', 'Potion', 'Common', 15, 5)
+antidote = it.Antidote('Antidote', 'potion', 'Common', 10)
 
 potions = [smallHealthPotion, healthPotion, regen, antidote]
 
@@ -103,27 +103,27 @@ items = {'common': {'weapon': [dagger, axe, longsword, greatsword,
                   'shield': [dawnGuard, heroWarden],
                   'ring': [jasperWhisper, lunarShield, jadeMoon, emeraldFlame]},
          'epic': {'weapon': [sinisterCarver, harbinger, blindJustice,
-                             stormbringer, eclipse],
+                             stormbRinger, eclipse],
                   'armor': [favorOfPhantoms, cryOfTheBerserker],
                   'shield': [tranquility, theSentry],
                   'ring': [lavishSpirit, moltenCore, forsakenPromise,
                            ancientVigor]}
          }
 
-rat = cr.Monster('Rat', 20, 1, 1, 3, 0, 0.1, 0.2, 1, potions, items,
+rat = cr.Monster('Rat', 1, 20, 1, 1, 3, 0, 0.1, 0.2, potions, items,
                  expValue=random.randint(300, 500))
-vileBat = cr.Monster('Vile Bat', 15, 1, 2, 3, 0, 0.3, 0.2, 1, potions, items,
+vileBat = cr.Monster('Vile Bat', 1, 15, 1, 2, 3, 0, 0.3, 0.2, potions, items,
                      expValue=random.randint(300, 500))
-zombie = cr.Monster('Zombie', 30, 1, 3, 5, 5, 0, 0.05, 2, potions, items,
+zombie = cr.Monster('Zombie', 2, 30, 1, 3, 5, 5, 0, 0.05, potions, items,
                     expValue=random.randint(400, 700))
-skeletonWarrior = cr.Monster('Skeleton Warrior', 25, 1, 3, 7, 20, 0.1, 0.1, 2,
+skeletonWarrior = cr.Monster('Skeleton Warrior', 2, 25, 1, 3, 7, 20, 0.1, 0.1,
                              potions, items, shield=True,
                              expValue=random.randint(400, 700))
-lesserShade = cr.Monster('Lesser Shade', 10, 1, 2, 6, 0, 0.5, 0.1, 1, potions,
+lesserShade = cr.Monster('Lesser Shade', 1, 10, 1, 2, 6, 0, 0.5, 0.1, potions,
                          items, expValue=random.randint(300, 500))
-giantSpider = cr.Monster('Giant Spider', 25, 1, 3, 8, 10, 0.1, 0.1, 2, potions,
+giantSpider = cr.Monster('Giant Spider', 2, 25, 1, 3, 8, 10, 0.1, 0.1, potions,
                          items, expValue=random.randint(400, 700))
-darkKnight = cr.Boss('Dark Knight', 80, 1, 10, 15, 50, 0.05, 0.1, 4, potions,
+darkKnight = cr.Boss('Dark Knight', 4, 80, 1, 10, 15, 50, 0.05, 0.1, potions,
                      items, shield=True, expValue=random.randint(1500, 2000))
 chest = ob.Chest(potions, items)
 shrine = ob.Shrine()
@@ -206,6 +206,7 @@ class Game:
                     if q.lower() == 'yes' or q.lower() == 'y':
                         return True
                     elif q.lower() == 'no' or q.lower() == 'n':
+                        # add boss mark on the map
                         return False
                     else:
                         raise ValueError
@@ -225,7 +226,7 @@ class Game:
             print('You see a wooden chest before you. What treasures does it '
                   'hold? You shiver with excitement as you opening it...')
             time.sleep(1)
-            object.open(items, potions, player)
+            object.open(player)
             self.oLevel[cx][cy] = None
         elif isinstance(object, cr.Monster):
             print(f'Damn, you see a {object.name}!')
@@ -259,54 +260,55 @@ class Game:
         if object == zombie:
             object.regenerate()
         elif object == vileBat:
-            object.stealLife(attack) # if attack != False
-        elif object == giantSpider and 'poisoned' not in player.states:
+            if attack:
+                object.stealLife(attack)
+        elif object == giantSpider and 'poisoned' not in player.status:
             if object.poison():
-                player.states.append('poisoned')
-        elif object == lesserShade and 'cursed' not in player.states:
+                player.status.append('poisoned')
+        elif object == lesserShade and 'cursed' not in player.status:
             if object.curse():
-                player.states.append('cursed')
+                player.status.append('cursed')
                 player.minDps = round((player.minDps / 100) * 50)
                 player.maxDps = round((player.maxDps / 100) * 50)
-        elif object == rat and 'diseased' not in player.states:
+        elif object == rat and 'diseased' not in player.status:
             if object.disease():
-                player.states.append('diseased')
+                player.status.append('diseased')
                 player.maxHealth = round((player.maxHealth / 100) * 80)
                 if player.currentHealth > player.maxHealth:
                     player.currentHealth = player.maxHealth
         elif object == darkKnight:
             if object.stun():
-                player.states.append('stunned')
+                player.status.append('stunned')
 
     @staticmethod
     def stateCheck(player):
-        if player.states:
-            if 'poisoned' in player.states:
+        if player.status:
+            if 'poisoned' in player.status:
                 n = random.randint(1, 5)
                 print(f'{player.name} took {n} damage from poison!')
                 player.currentHealth -= n
-            if 'stunned' in player.states:
-                player.states.remove('stunned')
+            if 'stunned' in player.status:
+                player.status.remove('stunned')
                 return False
-            if 'regenerate' in player.states:
-                if player.states[0][1] > 0:
+            if 'regenerate' in player.status:
+                if player.status[0][1] > 0:
                     player.currentHealth += regen.heal
                     print(f'{regeb.heal} hp regenerated!')
-                    player.states[0][1] -= 1
+                    player.status[0][1] -= 1
                 else:
-                    player.states.remove(['regenerate', 0])
+                    player.status.remove(['regenerate', 0])
             return True
         else:
             return True
 
     @staticmethod
     def restore(player):
-        if 'cursed' in player.states:
+        if 'cursed' in player.status:
             player.minDps = round((player.minDps / 50) * 100)
             player.maxDps = round((player.maxDps / 50) * 100)
-        if 'diseased' in player.states:
+        if 'diseased' in player.status:
             player.maxHealth = round((player.maxHealth / 80) * 100)
-        player.states = []
+        player.status = []
 
     def battle(self, player, object, cx, cy):
         time.sleep(1)
@@ -336,10 +338,10 @@ class Game:
         time.sleep(1)
 
     def command(self, player): # solve ' in items
-        eq = re.compile(r'equip ((\w+\s*)+)')
-        uneq = re.compile(r'unequip ((\w+\s*)+)')
-        view = re.compile(r'view ((\w+\s*)+)')
-        drink = re.compile(r'drink ((\w+\s*)+)')
+        eq = re.compile(r'equip ((\w+\'?\s*)+)')
+        uneq = re.compile(r'unequip ((\w+\'?\s*)+)')
+        view = re.compile(r'view ((\w+\'?\s*)+)')
+        drink = re.compile(r'drink ((\w+\'?\s*)+)')
         while True:
             try:
                 a = input('\nWhat\'s your action? ').lower()
@@ -348,7 +350,7 @@ class Game:
                 if a == 'help':
                     help()
                 elif a == 'char':
-                    player.showChar(player)
+                    player.showChar()
                 elif a == 'inv':
                     player.showInventory()
                 elif 'unequip' in a:
@@ -453,10 +455,10 @@ attack             attack a monster
 auto-attack        attack a monster until the fight ends
 char               shows your statistics and equiped gear
 inv                shows your inventory 
-equip >item<       equip an item
-unequip >item<     unequip an item
-view >item<        shows attributes of an item
-drink              drink a potion to regain health
+equip 'item'       equip an item
+unequip 'item'     unequip an item
+view 'item'        shows attributes of an item
+drink 'potion'     drink a potion to regain health
 quit               exit game       
 """)
 
