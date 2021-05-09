@@ -110,13 +110,14 @@ items = {'common': {'weapon': [dagger, axe, longsword, greatsword,
          'rare': {'weapon': [shadowStrike, peaceMaker, oathKeeper, soulReaper],
                   'armor': [soulOfTheEast, twilightIronArmor],
                   'shield': [dawnGuard, heroWarden],
-                  'ring': [jasperWhisper, lunarShield, jadeMoon, emeraldFlame]},
+                  'ring': [jasperWhisper, lunarShield, jadeMoon, emeraldFlame,
+                           serpentHead]},
          'epic': {'weapon': [sinisterCarver, harbinger, blindJustice,
                              stormbRinger, eclipse],
                   'armor': [favorOfPhantoms, cryOfTheBerserker],
                   'shield': [tranquility, theSentry],
                   'ring': [lavishSpirit, moltenCore, forsakenPromise,
-                           ancientVigor]}
+                           ancientVigor, coupDeGrace]}
          }
 
 rat = cr.Monster('Rat', 1, 20, 1, 1, 3, 0, 0.1, 0.2, 2, 0,
