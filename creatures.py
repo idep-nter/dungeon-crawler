@@ -49,10 +49,10 @@ class Creature:
         tMode = self.creatureType()
         baseGold = [5, 10]
         goldDict = {}
-        for l in range(1, 11):
-            gMin = baseGold[0] * l * tMode
-            gMax = baseGold[1] * l * tMode
-            goldDict.setdefault(l, [gMin, gMax])
+        for lvl in range(1, 11):
+            gMin = baseGold[0] * lvl * tMode
+            gMax = baseGold[1] * lvl * tMode
+            goldDict.setdefault(lvl, [gMin, gMax])
         rng = goldDict[self.lvl]
         gold = random.randint(rng[0], rng[1])
         print(f'You have found {gold} gold!')
@@ -103,28 +103,32 @@ class Creature:
             print(f'{self.name} stole {hp} health from you!')
             self.currentHealth += hp
 
-    def stun(self):
+    @staticmethod
+    def stun():
         n = random.random()
         if n < 0.3:
             print('You have been stunned!')
             return True
         return False
 
-    def poison(self):
+    @staticmethod
+    def poison():
         n = random.random()
         if n < 0.2:
             print('You have been poisoned!')
             return True
         return False
 
-    def curse(self):
+    @staticmethod
+    def curse():
         n = random.random()
         if n < 0.5:
             print('You have been cursed!')
             return True
         return False
 
-    def disease(self):
+    @staticmethod
+    def disease():
         n = random.random()
         if n < 0.2:
             print('You got a disease!')
@@ -169,7 +173,7 @@ class Player(Creature):
                  'Evasion': evasion, 'Crit Chance': critChance,
                  'Crit Multiplier': critMulti, 'Weapon': self.weapon,
                  'Armor': self.armor, 'Ring 1': self.ring1,
-                 'Ring 2': self.ring2, 'Status':self.status,
+                 'Ring 2': self.ring2, 'Status': self.status,
                  'Perks': self.perks}
         for key, value in attrs.items():
             if key == 'Perks' or key == 'Status':
@@ -177,7 +181,7 @@ class Player(Creature):
                 if value == '-':
                     print(f'{key:^15} : {value:^15}')
                 else:
-                    print(f'{key:^15} : {value}') #check
+                    print(f'{key:^15} : {value}')
             elif isinstance(value, it.Item):
                 print(f'{key:^15} : {value.name:^15}')
             else:
@@ -263,48 +267,48 @@ class Player(Creature):
             return False
 
     def unequipItem(self, item):
-            if item == self.weapon:
-                self.weapon = None
-                self.currentWeight -= item.weight
-                self.minDps -= item.minDps
-                self.maxDps -= item.maxDps
-                self.critChance -= item.critChance
-                self.critMulti -= item.critMulti
-                self.inventory.append(item)
-            elif item == self.shield:
-                self.shield = None
-                self.currentWeight -= item.weight
-                self.armorValue -= item.armorValue
-                self.blockChance -= item.blockChance
-                self.inventory.append(item)
-            elif item == self.armor:
-                self.armor = None
-                self.currentWeight -= item.weight
-                self.armorValue -= item.armorValue
-                self.evasion -= item.evasion
-                self.inventory.append(item)
-            elif item == self.ring1:
-                self.ring1 = None
-                self.maxHealth -= item.maxHealth
-                self.minDps -= item.minDps
-                self.maxDps -= item.maxDps
-                self.armorValue -= item.armorValue
-                self.evasion -= item.evasion
-                self.critChance -= item.critChance
-                self.critMulti -= item.critMulti
-                self.inventory.append(item)
-            elif item == self.ring2:
-                self.ring2 = None
-                self.maxHealth -= item.maxHealth
-                self.minDps -= item.minDps
-                self.maxDps -= item.maxDps
-                self.armorValue -= item.armorValue
-                self.evasion -= item.evasion
-                self.critChance -= item.critChance
-                self.critMulti -= item.critMulti
-                self.inventory.append(item)
-            else:
-                print('Wrong item!')
+        if item == self.weapon:
+            self.weapon = None
+            self.currentWeight -= item.weight
+            self.minDps -= item.minDps
+            self.maxDps -= item.maxDps
+            self.critChance -= item.critChance
+            self.critMulti -= item.critMulti
+            self.inventory.append(item)
+        elif item == self.shield:
+            self.shield = None
+            self.currentWeight -= item.weight
+            self.armorValue -= item.armorValue
+            self.blockChance -= item.blockChance
+            self.inventory.append(item)
+        elif item == self.armor:
+            self.armor = None
+            self.currentWeight -= item.weight
+            self.armorValue -= item.armorValue
+            self.evasion -= item.evasion
+            self.inventory.append(item)
+        elif item == self.ring1:
+            self.ring1 = None
+            self.maxHealth -= item.maxHealth
+            self.minDps -= item.minDps
+            self.maxDps -= item.maxDps
+            self.armorValue -= item.armorValue
+            self.evasion -= item.evasion
+            self.critChance -= item.critChance
+            self.critMulti -= item.critMulti
+            self.inventory.append(item)
+        elif item == self.ring2:
+            self.ring2 = None
+            self.maxHealth -= item.maxHealth
+            self.minDps -= item.minDps
+            self.maxDps -= item.maxDps
+            self.armorValue -= item.armorValue
+            self.evasion -= item.evasion
+            self.critChance -= item.critChance
+            self.critMulti -= item.critMulti
+            self.inventory.append(item)
+        else:
+            print('Wrong item!')
 
     def itemSearch(self, player, itemName):
         attrs = vars(player)
@@ -353,7 +357,7 @@ class Player(Creature):
             True
 
     def levelCheck(self):
-        lvls = {2 : 1000}
+        lvls = {2: 1000}
         for i in range(3, 21):
             num = 1000 * i * 1.5
             lvls.setdefault(i, num)
@@ -362,7 +366,7 @@ class Player(Creature):
                 self.levelUp(lvls)
         return False
 
-    def levelUp(self):
+    def levelUp(self, lvls):
         self.lvl += 1
         print('LEVEL UP!')
         self.maxHealth += 20
@@ -465,5 +469,3 @@ def strNone(value):
     if not value:
         return '-'
     return value
-
-

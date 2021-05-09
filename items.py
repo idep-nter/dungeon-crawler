@@ -110,6 +110,7 @@ class Armor(Item):
         for key, value in attrs.items():
             print(f'{key:^15} : {value:^15}')
 
+
 class LightArmor(Armor):
     def __init__(self, name, type, rarity, value, armorValue, evasion, weight):
         super().__init__(name, type, rarity, value, armorValue, evasion, weight)
@@ -186,7 +187,8 @@ class Antidote(Potion):
     def __init__(self, name, type, rarity, value):
         super().__init__(name, type, rarity, value)
 
-    def curePoison(self, player):
+    @staticmethod
+    def curePoison(player):
         player.status.remove('poisoned')
 
 

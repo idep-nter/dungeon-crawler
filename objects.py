@@ -6,7 +6,8 @@ class Shrine:
     def __init__(self):
         pass
 
-    def heal(self, player):
+    @staticmethod
+    def heal(player):
         player.currentHealth = player.maxHealth
 
 

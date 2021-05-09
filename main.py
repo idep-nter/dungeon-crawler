@@ -346,7 +346,7 @@ class Game:
             return True
         time.sleep(1)
 
-    def command(self, player): # solve ' in items
+    def command(self, player):
         eq = re.compile(r'equip ((\w+\'?\s*)+)')
         uneq = re.compile(r'unequip ((\w+\'?\s*)+)')
         view = re.compile(r'view ((\w+\'?\s*)+)')
@@ -475,4 +475,3 @@ quit               exit game
 if __name__ == '__main__':
     game = Game()
     game.play()
-
