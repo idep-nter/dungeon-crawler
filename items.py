@@ -7,80 +7,93 @@ class Item:
         self.weight = weight
 
 
-class Weapon(Item): # add crit dmg multiplier
+class Weapon(Item):
     def __init__(self, name, type, rarity, value, minDps, maxDps,
-                 critChance, weight):
+                 critChance, critMulti, weight):
         super().__init__(name, type, rarity, value, weight)
         self.minDps = minDps
         self.maxDps = maxDps
         self.critChance = critChance
+        self.critMulti = critMulti
 
     def itemView(self):
         dps = self.maxDps - self.minDps
         critChance = f'{int(self.critChance * 100)} %'
+        critMulti = f'x{self.critMulti}'
         attrs = {'Name': self.name, 'Type': self.type, 'Rarity': self.rarity,
-                 'DPS': dps, 'Crit Chance': critChance, 'Weight': self.weight,
+                 'DPS': dps, 'Crit Chance': critChance,
+                 'Crit Multiplier': critMulti, 'Weight': self.weight,
                  'Value': self.value}
         for key, value in attrs.items():
             print(f'{key:^15} : {value:^15}')
 
+
 class Longsword(Weapon):
     def __init__(self, name, type, rarity, value, minDps, maxDps,
-                 critChance, weight):
+                 critChance, critMulti, weight):
         super().__init__(name, type, rarity, value, minDps, maxDps,
-                         critChance, weight)
+                         critChance, critMulti, weight)
 
 
 class Greatsword(Weapon):
     def __init__(self, name, type, rarity, value, minDps, maxDps,
-                 critChance, weight):
+                 critChance, critMulti, weight):
         super().__init__(name, type, rarity, value, minDps, maxDps,
-                         critChance, weight)
+                         critChance, critMulti, weight)
 
 
 class Dagger(Weapon):
     def __init__(self, name, type, rarity, value, minDps, maxDps,
-                 critChance, weight):
+                 critChance, critMulti, weight):
         super().__init__(name, type, rarity, value, minDps, maxDps,
-                         critChance, weight)
+                         critChance, critMulti, weight)
 
 
 class SmallAxe(Weapon):
     def __init__(self, name, type, rarity, value, minDps, maxDps,
-                 critChance, weight):
+                 critChance, critMulti, weight):
         super().__init__(name, type, rarity, value, minDps, maxDps,
-                         critChance, weight)
+                         critChance, critMulti, weight)
 
 
 class Greataxe(Weapon):
     def __init__(self, name, type, rarity, value, minDps, maxDps,
-                 critChance, weight):
+                 critChance, critMulti, weight):
         super().__init__(name, type, rarity, value, minDps, maxDps,
-                         critChance, weight)
+                         critChance, critMulti, weight)
 
 
-class Shield(Item): #add block chance
-    def __init__(self, name, type, rarity, value, armorValue, evasion, weight):
+class Shield(Item):
+    def __init__(self, name, type, rarity, value, armorValue, evasion,
+                 blockChance, weight):
         super().__init__(name, type, rarity, value, weight)
         self.armorValue = armorValue
         self.evasion = evasion
+        self.blockChance = blockChance
 
     def itemView(self):
         evasion = f'{int(self.evasion * 100)} %'
+        blockChance = f'{int(self.blockChance * 100)} %'
         attrs = {'Name': self.name, 'Type': self.type, 'Rarity': self.rarity,
+                 'Block Chance': blockChance,
                  'Armor Value': self.armorValue, 'Evasion': evasion,
                  'Weight': self.weight, 'Value': self.value}
         for key, value in attrs.items():
             print(f'{key:^15} : {value:^15}')
 
+
 class Greatshield(Shield):
-    def __init__(self, name, type, rarity, value, armorValue, evasion, weight):
-        super().__init__(name, type, rarity, value, armorValue, evasion, weight)
+    def __init__(self, name, type, rarity, value, armorValue, evasion,
+                 blockChance, weight):
+        super().__init__(name, type, rarity, value, armorValue, evasion,
+                         blockChance, weight)
 
 
 class SmallShield(Shield):
-    def __init__(self, name, type, rarity, value, armorValue, evasion, weight):
-        super().__init__(name, type, rarity, value, armorValue, evasion, weight)
+    def __init__(self, name, type, rarity, value, armorValue, evasion,
+                 blockChance, weight):
+        super().__init__(name, type, rarity, value, armorValue, evasion,
+                         blockChance, weight)
 
 
 class Armor(Item):
@@ -109,12 +122,13 @@ class HeavyArmor(Armor):
 
 class Ring(Item):
     def __init__(self, name, type, rarity, value, minDps=None, maxDps=None,
-                 armorValue=None, evasion=None, critChance=None,
+                 armorValue=None, evasion=None, critChance=None, critMulti=None,
                  maxHealth=None):
         super().__init__(name, type, rarity, value)
         self.minDps = minDps
         self.maxDps = maxDps
         self.critChance = critChance
+        self.critMulti = critMulti
         self.armorValue = armorValue
         self.evasion = evasion
         self.maxHealth = maxHealth
@@ -132,10 +146,15 @@ class Ring(Item):
             critChance = f'{int(self.critChance * 100)} %'
         else:
             critChance = None
+        if self.critMulti:
+            critMulti = f'x{self.critMulti}'
+        else:
+            critMulti = None
         attrs = {'Name': self.name, 'Type': self.type, 'Rarity': self.rarity,
                  'Health': self.maxHealth, 'DPS': dps, 'Armor Value':
                      self.armorValue, 'Evasion': evasion,
-                 'Crit Chance': critChance, 'Value': self.value}
+                 'Crit Chance': critChance, 'Crit Multiplier': critMulti,
+                 'Value': self.value}
         for key, value in attrs.items():
             if not value:
                 continue

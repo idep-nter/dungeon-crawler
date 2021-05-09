@@ -5,8 +5,7 @@ import items as it
 
 class Creature:
     def __init__(self, name, lvl, maxHealth, currentHealth, minDps, maxDps,
-                 armorValue, evasion, critChance, potions=None, items=None,
-                 shield=None, expValue=None):
+                 armorValue, evasion, critChance, critMulti, blockChance):
         self.name = name
         self.lvl = lvl
         self.maxHealth = maxHealth
@@ -16,11 +15,8 @@ class Creature:
         self.armorValue = armorValue
         self.evasion = evasion
         self.critChance = critChance
-        self.potions = potions
-        self.items = items
-        self.shield = shield
-        self.expValue = expValue
-        self.status = []
+        self.critMulti = critMulti
+        self.blockChance = blockChance
 
     def attack(self, target):
         attack = random.randint(self.minDps, self.maxDps)
@@ -30,9 +26,10 @@ class Creature:
             return False
         if random.random() < self.critChance:
             crit = True
-            attack = (attack / 100) * 150
-        if target.shield:
-            attack = (attack / 100) * 70
+            attack = attack * self.critMulti
+        if random.random() < target.blockChance:
+            print(f'{target.name} blocked the attack!')
+            return False
         attack = round(attack / (1 + (target.armorValue / 100)))
         if crit:
             print(f'{target.name} was critically hit by {attack}!')
@@ -138,10 +135,12 @@ class Creature:
 class Player(Creature):
     def __init__(self, name, lvl=1, exp=0, maxHealth=100, currentHealth=100,
                  minDps=1, maxDps=2, armorValue=0, evasion=0.2, critChance=0.1,
-                 maxWeight=100, currentWeight=0, gold=0, weapon=None,
-                 armor=None, ring1=None, ring2=None, shield=None):
+                 critMulti=1.5, blockChance=0, maxWeight=100, currentWeight=0,
+                 gold=0, weapon=None, armor=None, ring1=None, ring2=None,
+                 shield=None):
         super().__init__(name, lvl, maxHealth, currentHealth, minDps, maxDps,
-                         armorValue, evasion, critChance, shield)
+                         armorValue, evasion, critChance, critMulti,
+                         blockChance)
         self.exp = exp
         self.maxWeight = maxWeight
         self.currentWeight = currentWeight
@@ -162,12 +161,16 @@ class Player(Creature):
         weight = f'{self.currentWeight}/{self.maxWeight}'
         evasion = f'{int(self.evasion * 100)} %'
         critChance = f'{int(self.critChance * 100)} %'
+        critMulti = f'x{self.critMulti}'
+        blockChance = f'{int(self.blockChance * 100)} %'
         attrs = {'Name': self.name, 'Level': self.lvl, 'Experience': exp,
                  'Health': health, 'Weight': weight, 'DPS': dps, 'Armor Value':
-                 self.armorValue, 'Evasion': evasion, 'Crit Chance':
-                 critChance, 'Weapon': self.weapon, 'Armor': self.armor,
-                 'Ring 1': self.ring1, 'Ring 2': self.ring2,
-                 'Status':self.status, 'Perks': self.perks}
+                 self.armorValue, 'Block Chance': blockChance,
+                 'Evasion': evasion, 'Crit Chance': critChance,
+                 'Crit Multiplier': critMulti, 'Weapon': self.weapon,
+                 'Armor': self.armor, 'Ring 1': self.ring1,
+                 'Ring 2': self.ring2, 'Status':self.status,
+                 'Perks': self.perks}
         for key, value in attrs.items():
             if key == 'Perks' or key == 'Status':
                 value = strNone(value)
@@ -204,6 +207,7 @@ class Player(Creature):
                 self.minDps += item.minDps
                 self.maxDps += item.maxDps
                 self.critChance += item.critChance
+                self.critMulti += item.critMulti
                 self.inventory.remove(item)
                 print(f'{item.name} equiped!')
             elif isinstance(item, it.Shield):
@@ -216,6 +220,7 @@ class Player(Creature):
                 self.shield = item
                 self.currentWeight += item.weight
                 self.armorValue += item.armorValue
+                self.blockChance += item.blockChance
                 self.inventory.remove(item)
                 print(f'{item.name} equiped!')
             elif isinstance(item, it.Armor):
@@ -250,6 +255,8 @@ class Player(Creature):
                     self.evasion += item.evasion
                 if item.critChance:
                     self.critChance += item.critChance
+                if item.critMulti:
+                    self.critMulti += item.critMulti
                 self.inventory.remove(item)
                 print(f'{item.name} equiped!')
         except ValueError:
@@ -262,11 +269,13 @@ class Player(Creature):
                 self.minDps -= item.minDps
                 self.maxDps -= item.maxDps
                 self.critChance -= item.critChance
+                self.critMulti -= item.critMulti
                 self.inventory.append(item)
             elif item == self.shield:
                 self.shield = None
                 self.currentWeight -= item.weight
                 self.armorValue -= item.armorValue
+                self.blockChance -= item.blockChance
                 self.inventory.append(item)
             elif item == self.armor:
                 self.armor = None
@@ -282,6 +291,7 @@ class Player(Creature):
                 self.armorValue -= item.armorValue
                 self.evasion -= item.evasion
                 self.critChance -= item.critChance
+                self.critMulti -= item.critMulti
                 self.inventory.append(item)
             elif item == self.ring2:
                 self.ring2 = None
@@ -291,6 +301,7 @@ class Player(Creature):
                 self.armorValue -= item.armorValue
                 self.evasion -= item.evasion
                 self.critChance -= item.critChance
+                self.critMulti -= item.critMulti
                 self.inventory.append(item)
             else:
                 print('Wrong item!')
@@ -348,7 +359,7 @@ class Player(Creature):
             lvls.setdefault(i, num)
         for k, v in lvls.items():
             if self.exp >= v and self.lvl < k:
-                self.levelUp()
+                self.levelUp(lvls)
         return False
 
     def levelUp(self):
@@ -356,6 +367,7 @@ class Player(Creature):
         print('LEVEL UP!')
         self.maxHealth += 20
         print('Max health +20!')
+        self.exp -= lvls[self.lvl]
         if self.lvl % 4 == 0:
             self.choosePerk()
 
@@ -391,12 +403,15 @@ class Player(Creature):
 
 
 class Monster(Creature):
-    def __init__(self, name,  lvl, maxHealth, currentHealth, minDps, maxDps,
-                 armorValue, evasion, critChance, potions, items,
-                 shield=None, expValue=None):
+    def __init__(self, name, lvl, maxHealth, currentHealth, minDps, maxDps,
+                 armorValue, evasion, critChance, critMulti, blockChance,
+                 expValue, potions, items):
         super().__init__(name,  lvl, maxHealth, currentHealth, minDps, maxDps,
-                         armorValue, evasion, critChance, potions, items,
-                         shield, expValue)
+                         armorValue, evasion, critChance, critMulti,
+                         blockChance)
+        self.potions = potions
+        self.items = items
+        self.expValue = expValue
         self.status = []
 
     def death(self, player):
@@ -416,12 +431,15 @@ class Monster(Creature):
 
 
 class Boss(Creature):
-    def __init__(self, name,  lvl, maxHealth, currentHealth, minDps, maxDps,
-                 armorValue, evasion, critChance, potions, items,
-                 shield=None, expValue=None):
-        super().__init__(name,  lvl, maxHealth, currentHealth, minDps, maxDps,
-                         armorValue, evasion, critChance, potions, items,
-                         shield, expValue)
+    def __init__(self, name, lvl, maxHealth, currentHealth, minDps, maxDps,
+                 armorValue, evasion, critChance, critMulti, blockChance, expValue,
+                 potions, items):
+        super().__init__(name, lvl, maxHealth, currentHealth, minDps, maxDps,
+                         armorValue, evasion, critChance, critMulti,
+                         blockChance)
+        self.potions = potions
+        self.items = items
+        self.expValue = expValue
         self.status = []
 
     def death(self, player):

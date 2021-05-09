@@ -5,52 +5,59 @@ import items as it
 import objects as ob
 import random
 
-dagger = it.Dagger('Dagger', 'Dagger', 'Common', 3, 2, 4, 0.2, 2)
-axe = it.SmallAxe('Axe', 'Small Axe', 'Common', 5, 3, 6, 0.1, 5)
-longsword = it.Longsword('Longsword', 'Longsword', 'Common', 5, 4, 7, 0.05, 4)
+dagger = it.Dagger('Dagger', 'Dagger', 'Common', 3, 2, 4, 0.2, 0, 2)
+axe = it.SmallAxe('Axe', 'Small Axe', 'Common', 5, 3, 6, 0.1, 0, 5)
+longsword = it.Longsword('Longsword', 'Longsword', 'Common', 5, 4, 7, 0.05, 0,
+                         4)
 greatsword = it.Greatsword('Greatsword', 'Greatsword', 'Common', 8, 6, 10,
-                           0.1, 8)
-greataxe = it.Greataxe('Greataxe', 'Greataxe', 'Common', 9, 5, 11, 0.15, 10)
-swiftDagger = it.Dagger('Swift Dagger', 'Dagger', 'Uncommon', 7, 3, 7, 0.2, 2)
-battleAxe = it.SmallAxe('Battle Axe', 'Small Axe', 'Uncommon', 8, 4, 9, 0.1, 5)
+                           0.1, 0.5, 8)
+greataxe = it.Greataxe('Greataxe', 'Greataxe', 'Common', 9, 5, 11, 0.15, 0.5,
+                       10)
+swiftDagger = it.Dagger('Swift Dagger', 'Dagger', 'Uncommon', 7, 3, 7, 0.2, 0,
+                        2)
+battleAxe = it.SmallAxe('Battle Axe', 'Small Axe', 'Uncommon', 8, 4, 9, 0.1, 0,
+                        5)
 noblemansSword = it.Longsword('Nobleman\'s sword', 'Longsword', 'Uncommon', 8,
-                              6, 11, 0.05, 4)
+                              6, 11, 0.05, 0, 4)
 balancedGreatSword = it.Greatsword('Balanced Greatsword', 'Greatsword',
-                                   'Uncommon', 13, 9, 15, 0.1, 8)
+                                   'Uncommon', 13, 9, 15, 0.1, 0.5, 8)
 chieftainsGreataxe = it.Greataxe('Chieftain\'s Greataxe', 'Greataxe',
-                                 'Uncommon', 12, 8, 14, 0.15, 10)
+                                 'Uncommon', 12, 8, 14, 0.15, 0.5, 10)
 shadowStrike = it.Dagger('Shadow Strike', 'Dagger', 'Rare', 23, 8, 14,
-                         0.2, 2)
+                         0.2, 0, 2)
 peaceMaker = it.SmallAxe('Peace Maker', 'Small Axe', 'Rare', 28, 11, 17,
-                         0.1, 6)
+                         0.1, 0, 6)
 oathKeeper = it.Longsword('Oath Keeper', 'Longsword', 'Rare', 26, 13, 18,
-                          0.05, 4)
+                          0.05, 0, 4)
 soulReaper = it.Greatsword('Soul Reaper', 'Greatsword', 'Rare', 35, 20,
-                           28, 0.1, 10)
-rapture = it.Greataxe('Rapture', 'Greataxe', 'Rare', 37, 18, 27, 0.15, 11)
+                           28, 0.1, 0.5, 10)
+rapture = it.Greataxe('Rapture', 'Greataxe', 'Rare', 37, 18, 27, 0.15, 0.5, 11)
 sinisterCarver = it.Dagger('Sinister Carver', 'Dagger', 'Epic', 50, 17, 25,
-                           0.2, 2)
-harbinger = it.SmallAxe('Harbinger', 'Small Axe', 'Epic', 56, 23, 30, 0.1, 6)
+                           0.2, 0, 2)
+harbinger = it.SmallAxe('Harbinger', 'Small Axe', 'Epic', 56, 23, 30, 0.1, 0,
+                        6)
 blindJustice = it.Longsword('Blind Justice', 'Longsword', 'Epic', 58, 26, 32,
-                            0.05, 4)
+                            0.05, 0, 4)
 stormbRinger = it.Greatsword('StormbRinger', 'Greatsword', 'Epic', 72, 39,
-                             45, 0.1, 12)
-eclipse = it.Greataxe('Eclipse', 'Greataxe', 'Epic', 78, 36, 44, 0.15, 36)
+                             45, 0.1, 0.5, 12)
+eclipse = it.Greataxe('Eclipse', 'Greataxe', 'Epic', 78, 36, 44, 0.15, 0.5, 36)
 smallShield = it.SmallShield('Small Shield', 'Small Shield', 'Common', 4, 5,
-                             -0.1, 5)
+                             -0.1, 0.15, 5)
 greatshield = it.Greatshield('Greatshield', 'Greatshield', 'Common', 6, 11,
-                             -0.2, 10)
+                             -0.3, 0.3, 10)
 compactShied = it.SmallShield('Compact Shield', 'Small Shield', 'Uncommon', 8,
-                              8, -0.1, 5)
-sturdyGreatshield = it.SmallShield('Sturdy Greatshield', 'Greatshield',
-                                   'Uncommon', 10, 15, -0.2, 11)
+                              8, -0.1, 0.15, 5)
+sturdyGreatshield = it.Greatshield('Sturdy Greatshield', 'Greatshield',
+                                   'Uncommon', 10, 15, -0.3, 0.3, 11)
 dawnGuard = it.SmallShield('Dawn Guard', 'Small Shield', 'Rare', 16, 16,
-                           -0.1, 6)
-heroWarden = it.Greatshield('Hero Warden', 'Greatshield', 'Rare', 19, 27, -0.2,
+                           -0.1, 0.15, 6)
+heroWarden = it.Greatshield('Hero Warden', 'Greatshield', 'Rare', 19, 27, -0.3,
+                            0.3,
                             12)
 tranquility = it.SmallShield('Tranquility', 'Small Shield', 'Epic', 35, 27,
-                             -0.1, 5)
-theSentry = it.Greatshield('The Sentry', 'Greatshield', 'Epic', 40, 38, -0.2,
+                             -0.1, 0.15, 5)
+theSentry = it.Greatshield('The Sentry', 'Greatshield', 'Epic', 40, 38, -0.3,
+                           0.3,
                            13)
 leatherArmor = it.LightArmor('Leather Armor', 'Light Armor', 'Common', 8, 16,
                              -0.1, 10)
@@ -73,6 +80,7 @@ goldRing = it.Ring('Gold Ring', 'Ring', 'Uncommon', 6)
 jasperWhisper = it.Ring('Jasper Whisper', 'Ring', 'Rare', 12, evasion=0.1)
 lunarShield = it.Ring('Lunar Shield', 'Ring', 'Rare', 11, armorValue=15)
 jadeMoon = it.Ring('Jade Moon', 'Ring', 'Rare', 15, critChance=0.1)
+serpentHead = it.Ring('Serpent Head', 'Ring', 'Rare', 16, critMulti=0.1)
 emeraldFlame = it.Ring('Emerald Flame', 'Ring', 'Rare', 13, minDps=5,
                        maxDps=10)
 lavishSpirit = it.Ring('Lavish Spirit', 'Ring', 'Epic', 25, evasion=0.2)
@@ -81,6 +89,7 @@ forsakenPromise = it.Ring('Forsaken Promise', 'Ring', 'Epic', 26,
                           critChance=0.2)
 ancientVigor = it.Ring('Ancient Vigor', 'Ring', 'Epic', 25, minDps=11,
                        maxDps=18)
+coupDeGrace = it.Ring('Coup de grâce', 'Ring', 'Epic', 25, critMulti=0.3)
 smallHealthPotion = it.HealthPotion('Small Health Potion', 'Potion', 'Common',
                                     10, 20)
 healthPotion = it.HealthPotion('Health Potion', 'Potion', 'Common', 20, 40)
@@ -110,21 +119,21 @@ items = {'common': {'weapon': [dagger, axe, longsword, greatsword,
                            ancientVigor]}
          }
 
-rat = cr.Monster('Rat', 1, 20, 1, 1, 3, 0, 0.1, 0.2, potions, items,
-                 expValue=random.randint(300, 500))
-vileBat = cr.Monster('Vile Bat', 1, 15, 1, 2, 3, 0, 0.3, 0.2, potions, items,
-                     expValue=random.randint(300, 500))
-zombie = cr.Monster('Zombie', 2, 30, 1, 3, 5, 5, 0, 0.05, potions, items,
-                    expValue=random.randint(400, 700))
+rat = cr.Monster('Rat', 1, 20, 1, 1, 3, 0, 0.1, 0.2, 2, 0,
+                 random.randint(300, 500), potions, items)
+vileBat = cr.Monster('Vile Bat', 1, 15, 1, 2, 3, 0, 0.3, 0.2, 1.5, 0,
+                     random.randint(300, 500), potions, items)
+zombie = cr.Monster('Zombie', 2, 30, 1, 3, 5, 5, 0, 0.05, 1.5, 0,
+                    random.randint(400, 700), potions, items)
 skeletonWarrior = cr.Monster('Skeleton Warrior', 2, 25, 1, 3, 7, 20, 0.1, 0.1,
-                             potions, items, shield=True,
-                             expValue=random.randint(400, 700))
-lesserShade = cr.Monster('Lesser Shade', 1, 10, 1, 2, 6, 0, 0.5, 0.1, potions,
-                         items, expValue=random.randint(300, 500))
-giantSpider = cr.Monster('Giant Spider', 2, 25, 1, 3, 8, 10, 0.1, 0.1, potions,
-                         items, expValue=random.randint(400, 700))
-darkKnight = cr.Boss('Dark Knight', 4, 80, 1, 10, 15, 50, 0.05, 0.1, potions,
-                     items, shield=True, expValue=random.randint(1500, 2000))
+                             1.5, 0.15, random.randint(400, 700), potions,
+                             items)
+lesserShade = cr.Monster('Lesser Shade', 1, 10, 1, 2, 6, 0, 0.5, 0.1, 1.5, 0,
+                         random.randint(300, 500), potions, items)
+giantSpider = cr.Monster('Giant Spider', 2, 25, 1, 3, 8, 10, 0.1, 0.1, 1.5, 0,
+                         random.randint(400, 700), potions, items)
+darkKnight = cr.Boss('Dark Knight', 4, 80, 1, 10, 15, 50, 0.05, 0.1, 2, 0.3,
+                     random.randint(1500, 2000), potions, items)
 chest = ob.Chest(potions, items)
 shrine = ob.Shrine()
 
