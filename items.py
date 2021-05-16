@@ -17,6 +17,9 @@ class Weapon(Item):
         self.critMulti = critMulti
 
     def itemView(self):
+        """
+        Prints weapon's stats in formatted way.
+        """
         dps = self.maxDps - self.minDps
         critChance = f'{int(self.critChance * 100)} %'
         critMulti = f'x{self.critMulti}'
@@ -34,12 +37,100 @@ class Longsword(Weapon):
         super().__init__(name, type, rarity, value, minDps, maxDps,
                          critChance, critMulti, weight)
 
+    @staticmethod
+    def heroicStrike(player):
+        """
+        Modifies player's attack by 150 %.
+        """
+        def inner(func):
+
+            def wrapper(*args, **kwargs):
+                attack = random.randint(player.minDps, player.maxDps) / 100 * \
+                         150
+                player.currentAp -= 1
+                return func(attack, *args, **kwargs)
+            return wrapper
+        return inner
+
+    @staticmethod
+    def pommelAttack(player, target):
+        """
+        If target doesn't evade or block, player attacks target by 70% damage
+        and stun it for a round.
+        """
+        def inner(func):
+
+            def wrapper(*args, **kwargs):
+                player.currentAp -= 2
+                attack = random.randint(player.minDps, player.maxDps) / 100 * \
+                         70
+                n = random.random()
+                if n < target.evasion:
+                    n = random.random()
+                    if n < target.blockChance:
+                        print(f'{target.name} is stunned!')
+                        target.status['stunned'] = \
+                            target.status.setdefault('stunned', 1) + 1
+                        return func(attack, rnd=True, *args, **kwargs)
+                    else:
+                        print(f'{target.name} blocked the attack!')
+                else:
+                    print(f'{player.name} missed the attack!')
+            return wrapper
+        return inner
+
 
 class Greatsword(Weapon):
     def __init__(self, name, type, rarity, value, minDps, maxDps,
                  critChance, critMulti, weight):
         super().__init__(name, type, rarity, value, minDps, maxDps,
                          critChance, critMulti, weight)
+
+    @staticmethod
+    def execute(player, target):
+        """
+        The target instantly dies if it's under 30 % of health else player's
+        attack is reduced to 70 %.
+        """
+        def inner(func):
+
+            def wrapper(*args, **kwargs):
+                player.currentAp -= 1
+                health = target.currentHealth / (target.maxHealth / 100)
+                if health < 30:
+                    n = random.random()
+                    if n < target.evasion:
+                        n = random.random()
+                        if n < target.blockChance:
+                            target.currentHealth = 0
+                        else:
+                            print(f'{target.name} blocked the attack!')
+                    else:
+                        print(f'{player.name} missed the attack!')
+                else:
+                    attack = random.randint(player.minDps, player.maxDps) / \
+                             100 * 70
+                    return func(attack, *args, **kwargs)
+            return wrapper
+        return inner
+
+    @staticmethod
+    def skullsplitter(player):
+        """
+        Modifies player's attack by 30 % for each available action point.
+        """
+        def inner(func):
+
+            def wrapper(*args, **kwargs):
+                aMod = 0
+                for i in range(player.currentAp):
+                    aMod += 0.3
+                player.currentAp = 0
+                attack = random.randint(player.minDps, player.maxDps) * aMod
+                player.currentAp -= 2
+                return func(attack, *args, **kwargs)
+            return wrapper
+        return inner
 
 
 class Dagger(Weapon):
@@ -48,6 +139,39 @@ class Dagger(Weapon):
         super().__init__(name, type, rarity, value, minDps, maxDps,
                          critChance, critMulti, weight)
 
+    @staticmethod
+    def poisonStrike(player, target):
+        """
+        If target doesn't evade or block, it gets poisoned.
+        """
+        player.currentAp -= 1
+        n = random.random()
+        if n < target.evasion:
+            n = random.random()
+            if n < target.blockChance:
+                print(f'{target.name} is poisoned!')
+                target.status['poisoned'] = target.status.setdefault('poisoned',
+                                                                     3) + 3
+            else:
+                print(f'{target.name} blocked the attack!')
+        else:
+            print(f'{player.name} missed the attack!')
+
+    @staticmethod
+    def sinisterStrike(player):
+        """
+        Modifies player's attack by 175 %.
+        """
+        def inner(func):
+
+            def wrapper(*args, **kwargs):
+                attack = random.randint(player.minDps, player.maxDps) / 100 * \
+                         175
+                player.currentAp -= 2
+                return func(attack, *args, **kwargs)
+            return wrapper
+        return inner
+
 
 class SmallAxe(Weapon):
     def __init__(self, name, type, rarity, value, minDps, maxDps,
@@ -55,12 +179,65 @@ class SmallAxe(Weapon):
         super().__init__(name, type, rarity, value, minDps, maxDps,
                          critChance, critMulti, weight)
 
+    @staticmethod
+    def deepWounds(player, target):
+        """
+        If target doesn't evade or block, it gets bleeding effect.
+        """
+        player.currentAp -= 1
+        n = random.random()
+        if n < target.evasion:
+            n = random.random()
+            if n < target.blockChance:
+                print(f'{target.name} is wounded!')
+                target.status['wounded'] = \
+                    target.status.setdefault('wounded', 3) + 3
+            else:
+                print(f'{target.name} blocked the attack!')
+        else:
+            print(f'{player.name} missed the attack!')
+
+    @staticmethod
+    def armorCrush(player, target):
+        """
+        If target doesn't evade or block, it gets crushed effect.
+        """
+        player.currentAp -= 2
+        n = random.random()
+        if n < target.evasion:
+            n = random.random()
+            if n < target.blockChance:
+                print(f'{target.name}\'s armor is crushed!')
+                target.status['crushed'] = \
+                    target.status.setdefault('crushed', 5) + 5
+            else:
+                print(f'{target.name} blocked the attack!')
+        else:
+            print(f'{player.name} missed the attack!')
+
 
 class Greataxe(Weapon):
     def __init__(self, name, type, rarity, value, minDps, maxDps,
                  critChance, critMulti, weight):
         super().__init__(name, type, rarity, value, minDps, maxDps,
                          critChance, critMulti, weight)
+
+    @staticmethod
+    def bloodthirst(player):
+        """
+        The player gets bloodthirst effect.
+        """
+        print(f'{player.name} got crazy by blood!')
+        player.status['bloodthirst'] = \
+            player.status.setdefault('bloodthirst', 3) + 3
+        player.currentAp -= 1
+
+    @staticmethod
+    def rampage():
+        """
+        The player attacks 3 times.
+        """
+        pass
 
 
 class Shield(Item):
@@ -72,6 +249,9 @@ class Shield(Item):
         self.blockChance = blockChance
 
     def itemView(self):
+        """
+        Print's shield's stats in formatted way.
+        """
         evasion = f'{int(self.evasion * 100)} %'
         blockChance = f'{int(self.blockChance * 100)} %'
         attrs = {'Name': self.name, 'Type': self.type, 'Rarity': self.rarity,
@@ -80,6 +260,34 @@ class Shield(Item):
                  'Weight': self.weight, 'Value': self.value}
         for key, value in attrs.items():
             print(f'{key:^15} : {value:^15}')
+
+    @staticmethod
+    def shieldBash(player, target):
+        """
+        If target doesn't evade or block, it gets stunned for 2 rounds.
+        """
+        player.currentAp -= 1
+        n = random.random()
+        if n < target.evasion:
+            n = random.random()
+            if n < target.blockChance:
+                print(f'{target.name} is stunned!')
+                target.status['stunned'] = \
+                    target.status.setdefault('stunned', 2) + 2
+            else:
+                print(f'{target.name} blocked the attack!')
+        else:
+            print(f'{player.name} missed the attack!')
+
+    @staticmethod
+    def shieldWall(player):
+        """
+        The player gets fortified effect.
+        """
+        print(f'{player.name} is now fortified!!')
+        player.status['fortified'] = \
+            player.status.setdefault('fortified', 5) + 1
+        player.currentAp -= 2
 
 
 class Greatshield(Shield):
@@ -103,6 +311,9 @@ class Armor(Item):
         self.evasion = evasion
 
     def itemView(self):
+        """
+        Prints armor's stats in formatted way.
+        """
         evasion = f'{int(self.evasion * 100)} %'
         attrs = {'Name': self.name, 'Type': self.type, 'Rarity': self.rarity,
                  'Armor Value': self.armorValue, 'Evasion': evasion,
@@ -135,6 +346,9 @@ class Ring(Item):
         self.maxHealth = maxHealth
 
     def itemView(self):
+        """
+        Prints ring's stats depending on which it has in formatted way.
+        """
         if self.maxDps:
             dps = self.maxDps - self.minDps
         else:
@@ -169,6 +383,9 @@ class Potion(Item):
         self.heal = heal
 
     def itemView(self):
+        """
+        Prints potion's stats in formatted way.
+        """
         attrs = {'Name': self.name, 'Type': self.type, 'Rarity': self.rarity,
                  'Heal': self.heal, 'Value': self.value}
         for key, value in attrs.items():
@@ -189,6 +406,9 @@ class Antidote(Potion):
 
     @staticmethod
     def curePoison(player):
+        """
+        Removes player's poison effect.
+        """
         player.status.remove('poisoned')
 
 

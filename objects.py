@@ -8,6 +8,9 @@ class Shrine:
 
     @staticmethod
     def heal(player):
+        """
+        Sets player's health points to maximum.
+        """
         player.currentHealth = player.maxHealth
 
 
@@ -27,12 +30,19 @@ class Chest:
 
     @staticmethod
     def goldFind(player):
+        """
+        Adds random number of gold in a given range to the player.
+        """
         rng = [20, 50]
         gold = random.randint(rng[0], rng[1])
         print(f'You have found {gold} gold!')
         player.gold += gold
 
     def itemFind(self, player):
+        """
+        Adds an item to the player's inventory which quality is depending on a
+        random number.
+        """
         item = None
         n = random.random()
         if n < 0.1:
@@ -48,11 +58,18 @@ class Chest:
             player.inventory.append(item)
 
     def randomItem(self, rarity):
+        """
+        Returns a random item from given rarity.
+        """
         iType = random.choice(list(self.items[rarity]))
         item = random.choice(list(self.items[rarity][iType]))
         return item
 
     def potionFind(self, player):
+        """
+        Adds a potion to the player's inventory if it passes random number
+        condition.
+        """
         n = random.random()
         if n < 0.5:
             potion = random.choice(self.potions)
@@ -61,6 +78,10 @@ class Chest:
 
     @staticmethod
     def trap(player):
+        """
+        Damages player by a number in a given range if it passes random number
+        condition.
+        """
         if random.random() < 0.2:
             dmg = random.randint(10, 20)
             player.currentHealth -= dmg

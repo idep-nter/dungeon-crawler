@@ -192,7 +192,7 @@ class Game:
             px, py = self.prevPos
             cx, cy = self.currPos
             if (-1 < cx < 8) and (-1 < cy < 8):
-                if self.bossCheck():
+                if self.bossCheck(cx, cy):
                     self.level[px][py] = Game.markerO
                     self.level[cx][cy] = Game.markerX
                     return True
@@ -204,8 +204,7 @@ class Game:
             print('You can\'t go in there.')
             return False
 
-    def bossCheck(self):
-        cx, cy = self.currPos
+    def bossCheck(self, cx, cy):
         object = self.oLevel[cx][cy]
         if isinstance(object, cr.Boss):
             while True:
@@ -216,7 +215,7 @@ class Game:
                     if q.lower() == 'yes' or q.lower() == 'y':
                         return True
                     elif q.lower() == 'no' or q.lower() == 'n':
-                        # add boss mark on the map
+                        self.level[cx][cy] = '!'
                         return False
                     else:
                         raise ValueError
@@ -242,6 +241,7 @@ class Game:
             print(f'Damn, you see a {object.name}!')
             pAction = True
             while pAction:
+                self.showStats(player, object)
                 c = self.command(player)
                 if c == 'auto-attack' or 'auto':
                     while True:
@@ -255,6 +255,7 @@ class Game:
             print(f'Damn, you see a {object.name}! He looks tough!')
             pAction = True
             while pAction:
+                self.showStats(player, object)
                 c = self.command(player)
                 if c == 'auto-attack' or 'auto':
                     while True:
@@ -266,7 +267,16 @@ class Game:
                         pAction = False
 
     @staticmethod
-    def special(object, player, attack):
+    def showStats(player, object):
+        hp = f'HP: {player.currentHealth}/{player.maxHealth}'
+        ap = f'AP: {player.currentAp}/{player.maxAp}'
+        eHp = f'HP: {object.currentHealth}/{object.maxHealth}'
+        print(f'\n{player.name}\n' + hp + '\n' + ap + '\n')
+        print(f'{object.name}\n' + eHp)
+
+
+    @staticmethod
+    def special(object, player, attack): # add other statuses + special for player
         if object == zombie:
             object.regenerate()
         elif object == vileBat:
@@ -291,7 +301,7 @@ class Game:
                 player.status.append('stunned')
 
     @staticmethod
-    def stateCheck(player):
+    def stateCheck(player): # add other statuses + state check for monsters
         if player.status:
             if 'poisoned' in player.status:
                 n = random.randint(1, 5)
@@ -312,18 +322,21 @@ class Game:
             return True
 
     @staticmethod
-    def restore(player):
+    def restore(player): # add other statuses
         if 'cursed' in player.status:
             player.minDps = round((player.minDps / 50) * 100)
             player.maxDps = round((player.maxDps / 50) * 100)
         if 'diseased' in player.status:
             player.maxHealth = round((player.maxHealth / 80) * 100)
         player.status = []
+        player.currentAp = 0
 
     def battle(self, player, object, cx, cy):
         time.sleep(1)
         if self.stateCheck(player):
-            player.attack(object)
+            att = player.attack(object)
+            if att:
+                player.appAdd(att)
         if isinstance(object, cr.Boss):
             if object.death(player):
                 player.levelCheck()
