@@ -1,4 +1,4 @@
-** **Current build ins't working AGAIN due to the implementation of monster and player abilities** **
+** **The current build isn't working AGAIN due to an implementation of monster and player abilities** **
 
 
 
