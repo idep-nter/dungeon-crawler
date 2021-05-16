@@ -1,4 +1,4 @@
-**Current build ins't working AGAIN due to the implementation of monster and player abilities**
+* **Current build ins't working AGAIN due to the implementation of monster and player abilities** *
 
 
 Here it is - my masterpiece - the first level of my text rpg game fully made in OOP.
