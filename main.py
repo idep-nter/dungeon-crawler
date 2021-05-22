@@ -309,11 +309,11 @@ class Game:
                     n = random.randint(3, 6)
                     print(f'{creature.name} took {n} damage from poison!')
                     creature.currentHealth -= n
-                    creature.status['poisoned'] -= 1
-                    if creature.status['poisoned'] == 0:
+                    creature.status['poisoned']['duration'] -= 1
+                    if creature.status['poisoned']['duration'] == 0:
                         del creature.status['poisoned']
                 if creature.status['stunned']:
-                    creature.status['stunned'] -= 1
+                    creature.status['stunned']['duration'] -= 1
                     if creature.status['stunned'] == 0:
                         del creature.status['stunned']
                     return False
@@ -321,8 +321,8 @@ class Game:
                     n = random.randint(3, 8)
                     creature.currentHealth += n
                     print(f'{creature.name} regenerated {n} hp!')
-                    creature.status['regeneration'] -= 1
-                    if creature.status['regeneration'] == 0:
+                    creature.status['regeneration']['duration'] -= 1
+                    if creature.status['regeneration']['duration'] == 0:
                         del creature.status['regeneration']
                 if creature.status['cursed']:
                     if not creature.status['cursed']:
@@ -375,8 +375,8 @@ class Game:
                     n = random.randint(1, 8)
                     print(f'{creature.name} took {n} damage from bleeding!')
                     creature.currentHealth -= n
-                    creature.status['wounded'] -= 1
-                    if creature.status['wounded'] == 0:
+                    creature.status['wounded']['duration'] -= 1
+                    if creature.status['wounded']['duration'] == 0:
                         del creature.status['wounded']
                 return True
             return True

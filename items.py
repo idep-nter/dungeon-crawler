@@ -69,8 +69,10 @@ class Longsword(Weapon):
                     n = random.random()
                     if n < target.blockChance:
                         print(f'{target.name} is stunned!')
-                        target.status['stunned'] = \
-                            target.status.setdefault('stunned', 0) + 1
+                        target.status['stunned']['duration'] = \
+                            target.status.setdefault('stunned',
+                                                     {}).setdefault('duration',
+                                                                    0) + 1
                         return func(attack, rnd=True, *args, **kwargs)
                     else:
                         print(f'{target.name} blocked the attack!')
@@ -78,7 +80,6 @@ class Longsword(Weapon):
                     print(f'{player.name} missed the attack!')
             return wrapper
         return inner
-
 
 class Greatsword(Weapon):
     def __init__(self, name, type, rarity, value, minDps, maxDps,
@@ -150,8 +151,9 @@ class Dagger(Weapon):
             n = random.random()
             if n < target.blockChance:
                 print(f'{target.name} is poisoned!')
-                target.status['poisoned'] = target.status.setdefault('poisoned',
-                                                                     0) + 3
+                target.status['poisoned']['duration'] = \
+                    target.status.setdefault('poisoned',
+                                             {}).setdefault('duration', 0) + 3
             else:
                 print(f'{target.name} blocked the attack!')
         else:
@@ -190,8 +192,9 @@ class SmallAxe(Weapon):
             n = random.random()
             if n < target.blockChance:
                 print(f'{target.name} is wounded!')
-                target.status['wounded'] = \
-                    target.status.setdefault('wounded', 0) + 3
+                target.status['wounded']['duration'] = \
+                    target.status.setdefault('wounded',
+                                             {}).setdefault('duration', 0) + 3
             else:
                 print(f'{target.name} blocked the attack!')
         else:
@@ -279,8 +282,9 @@ class Shield(Item):
             n = random.random()
             if n < target.blockChance:
                 print(f'{target.name} is stunned!')
-                target.status['stunned'] = \
-                    target.status.setdefault('stunned', 2) + 2
+                target.status['stunned']['duration'] = \
+                    target.status.setdefault('stunned',
+                                             {}).setdefault('duration', 0) + 2
             else:
                 print(f'{target.name} blocked the attack!')
         else:
@@ -428,5 +432,6 @@ class RegenPotion(Potion):
 
     @staticmethod
     def regen(player):
-        player.status['regeneration'] = player.status.setdefault('regeneration',
-                                                         3) + 3
+        player.status.setdefault('regeneration',
+                                 {}).setdefault('duration',
+                                                3) + 3

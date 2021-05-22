@@ -162,8 +162,10 @@ class Creature:
         """
         n = random.random()
         if n < 0.2:
-            player.status['stunned'] = player.status.setdefault('stunned', 0) \
-                                        + 1
+            player.status['stunned']['duration'] = \
+                player.status.setdefault('stunned',
+                                         {}).setdefault('duration',
+                                                        0) + 2
             print('You have been stunned!')
 
     @staticmethod
@@ -172,8 +174,9 @@ class Creature:
         Player gets poisoned effect if it passes the test.
         """
         if n < 0.2:
-            player.status['poisoned'] = player.status.setdefault('poisoned', 0) \
-                                        + 3
+            player.status['poisoned']['duration'] = \
+                player.status.setdefault('poisoned',
+                                         {}).setdefault('duration', 0) + 3
             print('You have been poisoned!')
 
     @staticmethod
@@ -182,7 +185,8 @@ class Creature:
         Player gets cursed effect if it passes the test.
         """
         if n < 0.2:
-            player.status['cursed'] = player.status.setdefault('cursed', False)
+            player.status.setdefault('cursed',
+                                     {}).setdefault('active', False)
             print('You have been cursed!')
 
     @staticmethod
@@ -191,8 +195,8 @@ class Creature:
         Player gets diseased effect if it passes the test.
         """
         if n < 0.2:
-            player.status['diseased'] = player.status.setdefault('diseased',
-                                                                 False)
+            player.status.setdefault('diseased',
+                                     {}).setdefault('active', False)
             print('You have been diseased!')
 
     def fortify(self):
