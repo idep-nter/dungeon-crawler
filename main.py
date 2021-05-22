@@ -93,7 +93,7 @@ coupDeGrace = it.Ring('Coup de grâce', 'Ring', 'Epic', 25, critMulti=0.3)
 smallHealthPotion = it.HealthPotion('Small Health Potion', 'Potion', 'Common',
                                     10, 20)
 healthPotion = it.HealthPotion('Health Potion', 'Potion', 'Common', 20, 40)
-regen = it.RegenPotion('Regeneration Potion', 'Potion', 'Common', 15, 5)
+regen = it.RegenPotion('Regeneration Potion', 'Potion', 'Common', 15)
 antidote = it.Antidote('Antidote', 'potion', 'Common', 10)
 
 potions = [smallHealthPotion, healthPotion, regen, antidote]
@@ -267,100 +267,168 @@ class Game:
                         pAction = False
 
     @staticmethod
-    def showStats(player, object):
+    def showStats(player, enemy): # add abilities
         hp = f'HP: {player.currentHealth}/{player.maxHealth}'
         ap = f'AP: {player.currentAp}/{player.maxAp}'
-        eHp = f'HP: {object.currentHealth}/{object.maxHealth}'
+        eHp = f'HP: {enemy.currentHealth}/{enemy.maxHealth}'
         print(f'\n{player.name}\n' + hp + '\n' + ap + '\n')
-        print(f'{object.name}\n' + eHp)
-
-
-    @staticmethod
-    def special(object, player, attack): # add other statuses + special for player
-        if object == zombie:
-            object.regenerate()
-        elif object == vileBat:
-            if attack:
-                object.stealLife(attack)
-        elif object == giantSpider and 'poisoned' not in player.status:
-            if object.poison():
-                player.status.append('poisoned')
-        elif object == lesserShade and 'cursed' not in player.status:
-            if object.curse():
-                player.status.append('cursed')
-                player.minDps = round((player.minDps / 100) * 50)
-                player.maxDps = round((player.maxDps / 100) * 50)
-        elif object == rat and 'diseased' not in player.status:
-            if object.disease():
-                player.status.append('diseased')
-                player.maxHealth = round((player.maxHealth / 100) * 80)
-                if player.currentHealth > player.maxHealth:
-                    player.currentHealth = player.maxHealth
-        elif object == darkKnight:
-            if object.stun():
-                player.status.append('stunned')
+        print(f'{enemy.name}\n' + eHp)
 
     @staticmethod
-    def stateCheck(player): # add other statuses + state check for monsters
-        if player.status:
-            if 'poisoned' in player.status:
-                n = random.randint(1, 5)
-                print(f'{player.name} took {n} damage from poison!')
-                player.currentHealth -= n
-            if 'stunned' in player.status:
-                player.status.remove('stunned')
-                return False
-            if 'regenerate' in player.status:
-                if player.status[0][1] > 0:
-                    player.currentHealth += regen.heal
-                    print(f'{regeb.heal} hp regenerated!')
-                    player.status[0][1] -= 1
-                else:
-                    player.status.remove(['regenerate', 0])
+    def enemyAttack(enemy, player, round):
+        if enemy == zombie:
+            enemy.attack(player)
+            enemy.regenerate()
+        elif enemy == vileBat:
+            enemy.stealLife(player)
+        elif enemy == giantSpider:
+            att = enemy.attack(player)
+            if att:
+                enemy.poison(player)
+        elif enemy == lesserShade:
+            att = enemy.attack(player)
+            if att:
+                enemy.curse(player)
+        elif enemy == rat:
+            att = enemy.attack(player)
+            if att:
+                enemy.disease(player)
+        elif enemy == darkKnight:
+            if round == 1 or round % 5 == 0:
+                enemy.fortify()
+            else:
+                att = enemy.attack(player)
+                if att:
+                    enemy.stun(player)
+
+    @staticmethod
+    def stateCheck(creature, creatureSave):
+        try:
+            if creature.status:
+                if creature.status['poisoned']:
+                    n = random.randint(3, 6)
+                    print(f'{creature.name} took {n} damage from poison!')
+                    creature.currentHealth -= n
+                    creature.status['poisoned'] -= 1
+                    if creature.status['poisoned'] == 0:
+                        del creature.status['poisoned']
+                if creature.status['stunned']:
+                    creature.status['stunned'] -= 1
+                    if creature.status['stunned'] == 0:
+                        del creature.status['stunned']
+                    return False
+                if creature.status['regeneration']:
+                    n = random.randint(3, 8)
+                    creature.currentHealth += n
+                    print(f'{creature.name} regenerated {n} hp!')
+                    creature.status['regeneration'] -= 1
+                    if creature.status['regeneration'] == 0:
+                        del creature.status['regeneration']
+                if creature.status['cursed']:
+                    if not creature.status['cursed']:
+                        creature.minDps = round((creature.minDps / 100) * 50)
+                        creature.maxDps = round((creature.maxDps / 100) * 50)
+                        creature.status['cursed'] = True
+                if creature.status['diseased']:
+                    if not creature.status['cursed']:
+                        creature.maxHealth = round((creature.maxHealth / 100)
+                                                   * 80)
+                        creature.status['diseased'] = True
+                if creature.status['fortified']:
+                    if not creature.status['fortified']['active']:
+                        creature.status['fortified']['active'] = True
+                        creature.armorValue = (creature.armorValue / 100) * 150
+                        creature.status['fortified']['duration'] -= 1
+                    else:
+                        if creature.status['fortified']['duration'] == 0:
+                            creature.armorValue = creatureSave.armorValue
+                            del creature.status['fortified']
+                        else:
+                            creature.status['fortified']['duration'] -= 1
+                if creature.status['bloodthirst']:
+                    if not creature.status['bloodthirst']['active']:
+                        creature.status['bloodthirst']['active'] = True
+                        creature.armorValue = (creature.armorValue / 100) * 50
+                        creature.minDps = (creature.minDps / 100) * 150
+                        creature.maxDps = (creature.maxDps / 100) * 150
+                        creature.status['bloodthirst']['duration'] -= 1
+                    else:
+                        if creature.status['bloodthirst']['duration'] == 0:
+                            creature.armorValue = creatureSave.armorValue
+                            creature.minDps = creatureSave.minDps
+                            creature.maxDps = creatureSave.maxDps
+                            del creature.status['bloodthirst']
+                        else:
+                            creature.status['bloodthirst']['duration'] -= 1
+                if creature.status['crushed']:
+                    if not creature.status['crushed']['active']:
+                        creature.status['crushed']['active'] = True
+                        creature.armorValue = (creature.armorValue / 100) * 70
+                        creature.status['crushed']['duration'] -= 1
+                    else:
+                        if creature.status['crushed']['duration'] == 0:
+                            creature.armorValue = creatureSave.armorValue
+                            del creature.status['crushed']
+                        else:
+                            creature.status['crushed']['duration'] -= 1
+                if creature.status['wounded']:
+                    n = random.randint(1, 8)
+                    print(f'{creature.name} took {n} damage from bleeding!')
+                    creature.currentHealth -= n
+                    creature.status['wounded'] -= 1
+                    if creature.status['wounded'] == 0:
+                        del creature.status['wounded']
+                return True
             return True
-        else:
-            return True
+        except KeyError:
+            pass
 
     @staticmethod
-    def restore(player): # add other statuses
-        if 'cursed' in player.status:
-            player.minDps = round((player.minDps / 50) * 100)
-            player.maxDps = round((player.maxDps / 50) * 100)
-        if 'diseased' in player.status:
-            player.maxHealth = round((player.maxHealth / 80) * 100)
-        player.status = []
+    def restore(creature, creatureSave):
+        creature.minDps = creatureSave.minDps
+        creature.minDps = creatureSave.maxDps
+        creature.maxHealth = creatureSave.maxHealth
+        creature.armorValue = creatureSave.armorValue
+        creature.status = {}
         player.currentAp = 0
 
-    def battle(self, player, object, cx, cy):
-        time.sleep(1)
-        if self.stateCheck(player):
-            att = player.attack(object)
-            if att:
-                player.appAdd(att)
-        if isinstance(object, cr.Boss):
-            if object.death(player):
-                player.levelCheck()
-                print('VICTORY ACHIEVED')
-                time.sleep(1)
-                self.restore(player)
-                self.flag = False
-                return True
-        elif object.death(player):
-            player.levelCheck()
+    def battle(self, player, enemy, cx, cy):
+        playerSave = player
+        enemySave = enemy
+        round = 1
+        battle = True
+        while battle:
             time.sleep(1)
-            self.oLevel[cx][cy] = None
-            self.restore(player)
-            return True
-        time.sleep(1)
-        att = object.attack(player)
-        self.special(object, player, att)
-        if player.death():
-            print('YOU DIED')
-            self.flag = False
-            return True
-        time.sleep(1)
+            if self.stateCheck(player, playerSave):
+                att = player.attack(enemy)
+                if att:
+                    player.appAdd(att)
+            if isinstance(enemy, cr.Boss):
+                if enemy.death(player):
+                    player.levelCheck()
+                    print('VICTORY ACHIEVED')
+                    time.sleep(1)
+                    self.restore(player, playerSave)
+                    self.flag = False
+                    return True
+            elif enemy.death(player):
+                player.levelCheck()
+                time.sleep(1)
+                self.oLevel[cx][cy] = None
+                self.restore(player, playerSave)
+                self.restore(enemy, enemySave)
+                return True
+            time.sleep(1)
+            if self.stateCheck(enemy, enemySave):
+                self.enemyAttack(enemy, player, round)
+                if player.death():
+                    print('YOU DIED')
+                    self.flag = False
+                    return True
+            time.sleep(1)
+            round += 1
 
-    def command(self, player):
+    def command(self, player): # Add abilities
         eq = re.compile(r'equip ((\w+\'?\s*)+)')
         uneq = re.compile(r'unequip ((\w+\'?\s*)+)')
         view = re.compile(r'view ((\w+\'?\s*)+)')

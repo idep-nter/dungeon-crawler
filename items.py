@@ -70,7 +70,7 @@ class Longsword(Weapon):
                     if n < target.blockChance:
                         print(f'{target.name} is stunned!')
                         target.status['stunned'] = \
-                            target.status.setdefault('stunned', 1) + 1
+                            target.status.setdefault('stunned', 0) + 1
                         return func(attack, rnd=True, *args, **kwargs)
                     else:
                         print(f'{target.name} blocked the attack!')
@@ -151,7 +151,7 @@ class Dagger(Weapon):
             if n < target.blockChance:
                 print(f'{target.name} is poisoned!')
                 target.status['poisoned'] = target.status.setdefault('poisoned',
-                                                                     3) + 3
+                                                                     0) + 3
             else:
                 print(f'{target.name} blocked the attack!')
         else:
@@ -191,7 +191,7 @@ class SmallAxe(Weapon):
             if n < target.blockChance:
                 print(f'{target.name} is wounded!')
                 target.status['wounded'] = \
-                    target.status.setdefault('wounded', 3) + 3
+                    target.status.setdefault('wounded', 0) + 3
             else:
                 print(f'{target.name} blocked the attack!')
         else:
@@ -208,8 +208,12 @@ class SmallAxe(Weapon):
             n = random.random()
             if n < target.blockChance:
                 print(f'{target.name}\'s armor is crushed!')
-                target.status['crushed'] = \
-                    target.status.setdefault('crushed', 5) + 5
+
+                player.status.setdefault('crushed',
+                                         {}).setdefault('active', False)
+                player.status['crushed']['duration'] = \
+                    player.status.setdefault('crushed',
+                                             {}).setdefault('duration', 0) + 4
             else:
                 print(f'{target.name} blocked the attack!')
         else:
@@ -228,8 +232,11 @@ class Greataxe(Weapon):
         The player gets bloodthirst effect.
         """
         print(f'{player.name} got crazy by blood!')
-        player.status['bloodthirst'] = \
-            player.status.setdefault('bloodthirst', 3) + 3
+        player.status.setdefault('bloodthirst',
+                                 {}).setdefault('active', False)
+        player.status['bloodthirst']['duration'] = \
+            player.status.setdefault('bloodthirst',
+                                     {}).setdefault('duration', 0) + 3
         player.currentAp -= 1
 
     @staticmethod
@@ -285,8 +292,11 @@ class Shield(Item):
         The player gets fortified effect.
         """
         print(f'{player.name} is now fortified!!')
-        player.status['fortified'] = \
-            player.status.setdefault('fortified', 5) + 1
+        player.status.setdefault('fortified',
+                                 {}).setdefault('active', False)
+        player.status['fortified']['duration'] = \
+            player.status.setdefault('fortified',
+                                     {}).setdefault('duration', 0) + 4
         player.currentAp -= 2
 
 
@@ -409,9 +419,14 @@ class Antidote(Potion):
         """
         Removes player's poison effect.
         """
-        player.status.remove('poisoned')
+        del player.status['poisoned']
 
 
 class RegenPotion(Potion):
-    def __init__(self, name, type, rarity, value, heal):
-        super().__init__(name, type, rarity, value, heal)
+    def __init__(self, name, type, rarity, value):
+        super().__init__(name, type, rarity, value)
+
+    @staticmethod
+    def regen(player):
+        player.status['regeneration'] = player.status.setdefault('regeneration',
+                                                         3) + 3

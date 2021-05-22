@@ -119,14 +119,18 @@ class Creature:
 
     def regenerate(self):
         """
-        Regenerates creature's health points in a given range for 3 rounds
+        Regenerates creature's health in a given range if it passes the
+        condition.
         """
         n = random.random()
-        if n < 0.2:
-            self.status['regeneration'] = self.status.setdefault('regeneration',
-                                                                 3) + 3
+        if n < 0.3:
+            hp = random.randint(1, 5)
+            print(f'{self.name} regenerated {hp} hp!')
+            self.currentHealth += hp
+            if self.currentHealth > self.maxHealth:
+                self.currentHealth = self.maxHealth
 
-    def stealLife(self, target):
+    def stealLife(self, player):
         """
         Instead of basic attack it tries to heal itself by the given damage if
         it passes all conditions.
@@ -136,20 +140,20 @@ class Creature:
         n = random.random()
         if n < 0.3:
             attack = random.randint(self.minDps, self.maxDps)
-            if random.random() < target.evasion:
+            if random.random() < player.evasion:
                 print(f'{self.name} missed the attack!')
                 return False
-            if random.random() < target.blockChance:
-                print(f'{target.name} blocked the attack!')
+            if random.random() < player.blockChance:
+                print(f'{player.name} blocked the attack!')
                 return False
             if random.random() < self.critChance:
                 attack = attack * self.critMulti
-            attack = round(attack / (1 + (target.armorValue / 100)))
+            attack = round(attack / (1 + (player.armorValue / 100)))
             print(f'{self.name} stole {attack} health from you!')
             self.currentHealth += hp
-            target.currentHealth -= attack
+            player.currentHealth -= attack
         else:
-            self.attack(target)
+            self.attack(player)
 
     @staticmethod
     def stun(player):
@@ -158,38 +162,46 @@ class Creature:
         """
         n = random.random()
         if n < 0.2:
-            player.status['stunned'] = player.status.setdefault('stunned', 1) \
+            player.status['stunned'] = player.status.setdefault('stunned', 0) \
                                         + 1
             print('You have been stunned!')
 
     @staticmethod
-    def poison():
+    def poison(player):
         """
         Player gets poisoned effect if it passes the test.
         """
         if n < 0.2:
-            player.status['poisoned'] = player.status.setdefault('poisoned', 3) \
+            player.status['poisoned'] = player.status.setdefault('poisoned', 0) \
                                         + 3
             print('You have been poisoned!')
 
     @staticmethod
-    def curse():
+    def curse(player):
         """
         Player gets cursed effect if it passes the test.
         """
         if n < 0.2:
-            player.status['cursed'] = player.status.setdefault('cursed', '~')
+            player.status['cursed'] = player.status.setdefault('cursed', False)
             print('You have been cursed!')
 
     @staticmethod
-    def disease():
+    def disease(player):
         """
         Player gets diseased effect if it passes the test.
         """
         if n < 0.2:
             player.status['diseased'] = player.status.setdefault('diseased',
-                                                                 '~')
+                                                                 False)
             print('You have been diseased!')
+
+    def fortify(self):
+        self.status.setdefault('fortified',
+                                     {}).setdefault('active', False)
+        self.status['fortified']['duration'] = \
+            self.status.setdefault('fortified', {}).setdefault('duration', 0) \
+            + 4
+        print(f'{self.name} has been fortified!')
 
 
 class Player(Creature):
@@ -216,7 +228,7 @@ class Player(Creature):
         self.perks = []
         self.status = {}
 
-    def showChar(self):
+    def showChar(self): # status print needs to be changed
         """
         Prints player's stats in formatted way.
         """
@@ -414,7 +426,8 @@ class Player(Creature):
                 print(f'{heal} health healed!')
                 self.inventory.remove(potion)
         elif isinstance(potion, it.Regen):
-            self.status.insert(0, ['regenerate', 5]) # prob need to change
+            target.status['regeneration'] = \
+                target.status.setdefault('regeneration', 5) + 5
         elif isinstance(potion, it.Antidote):
             potion.curePoison(self)
             print('Poison was cured!')
