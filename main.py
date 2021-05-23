@@ -120,20 +120,20 @@ items = {'common': {'weapon': [dagger, axe, longsword, greatsword,
                            ancientVigor, coupDeGrace]}
          }
 
-rat = cr.Monster('Rat', 1, 20, 1, 1, 3, 0, 0.1, 0.2, 2, 0,
+rat = cr.Monster('Rat', 1, 20, 20, 1, 3, 0, 0.1, 0.2, 2, 0,
                  random.randint(300, 500), potions, items)
-vileBat = cr.Monster('Vile Bat', 1, 15, 1, 2, 3, 0, 0.3, 0.2, 1.5, 0,
+vileBat = cr.Monster('Vile Bat', 1, 15, 15, 2, 3, 0, 0.3, 0.2, 1.5, 0,
                      random.randint(300, 500), potions, items)
-zombie = cr.Monster('Zombie', 2, 30, 1, 3, 5, 5, 0, 0.05, 1.5, 0,
+zombie = cr.Monster('Zombie', 2, 30, 30, 3, 5, 5, 0, 0.05, 1.5, 0,
                     random.randint(400, 700), potions, items)
-skeletonWarrior = cr.Monster('Skeleton Warrior', 2, 25, 1, 3, 7, 20, 0.1, 0.1,
+skeletonWarrior = cr.Monster('Skeleton Warrior', 2, 25, 25, 3, 7, 20, 0.1, 0.1,
                              1.5, 0.15, random.randint(400, 700), potions,
                              items)
-lesserShade = cr.Monster('Lesser Shade', 1, 10, 1, 2, 6, 0, 0.5, 0.1, 1.5, 0,
+lesserShade = cr.Monster('Lesser Shade', 1, 10, 10, 2, 6, 0, 0.5, 0.1, 1.5, 0,
                          random.randint(300, 500), potions, items)
-giantSpider = cr.Monster('Giant Spider', 2, 25, 1, 3, 8, 10, 0.1, 0.1, 1.5, 0,
+giantSpider = cr.Monster('Giant Spider', 2, 25, 25, 3, 8, 10, 0.1, 0.1, 1.5, 0,
                          random.randint(400, 700), potions, items)
-darkKnight = cr.Boss('Dark Knight', 4, 80, 1, 10, 15, 50, 0.05, 0.1, 2, 0.3,
+darkKnight = cr.Boss('Dark Knight', 4, 80, 80, 10, 15, 50, 0.05, 0.1, 2, 0.3,
                      random.randint(1500, 2000), potions, items)
 chest = ob.Chest(potions, items)
 shrine = ob.Shrine()
@@ -240,31 +240,45 @@ class Game:
         elif isinstance(object, cr.Monster):
             print(f'Damn, you see a {object.name}!')
             pAction = True
+            round = 1
+            playerSave = player
+            enemySave = object
             while pAction:
                 self.showStats(player, object)
                 c = self.command(player)
-                if c == 'auto-attack' or 'auto':
+                if c == 'auto-attack' or c == 'auto':
                     while True:
-                        if self.battle(player, object, cx, cy):
+                        if self.battle(player, object, playerSave, enemySave,
+                                       round, cx, cy):
                             pAction = False
                             break
+                        round += 1
                 else:
-                    if self.battle(player, object, cx, cy):
+                    if self.battle(player, object, playerSave, enemySave,
+                                   round, cx, cy):
                         pAction = False
+                    round += 1
         elif isinstance(object, cr.Boss):
             print(f'Damn, you see a {object.name}! He looks tough!')
             pAction = True
+            round = 1
+            playerSave = player
+            enemySave = object
             while pAction:
                 self.showStats(player, object)
                 c = self.command(player)
                 if c == 'auto-attack' or 'auto':
                     while True:
-                        if self.battle(player, object, cx, cy):
+                        if self.battle(player, object, playerSave, enemySave,
+                                       round, cx, cy):
                             pAction = False
                             break
+                        round += 1
                 else:
-                    if self.battle(player, object, cx, cy):
+                    if self.battle(player, object, playerSave, enemySave,
+                                   round, cx, cy):
                         pAction = False
+                    round += 1
 
     @staticmethod
     def showStats(player, enemy): # add abilities
@@ -300,12 +314,14 @@ class Game:
                 att = enemy.attack(player)
                 if att:
                     enemy.stun(player)
+        else:
+            enemy.attack(player)
 
     @staticmethod
     def stateCheck(creature, creatureSave):
         try:
             if creature.status:
-                if creature.status['poisoned']:
+                if 'poisoned' in creature.status:
                     n = random.randint(3, 6)
                     print(f'{creature.name} took {n} damage from poison!')
                     creature.currentHealth -= n
@@ -317,24 +333,24 @@ class Game:
                     if creature.status['stunned'] == 0:
                         del creature.status['stunned']
                     return False
-                if creature.status['regeneration']:
+                if 'regeneration' in creature.status:
                     n = random.randint(3, 8)
                     creature.currentHealth += n
                     print(f'{creature.name} regenerated {n} hp!')
                     creature.status['regeneration']['duration'] -= 1
                     if creature.status['regeneration']['duration'] == 0:
                         del creature.status['regeneration']
-                if creature.status['cursed']:
-                    if not creature.status['cursed']:
+                if 'cursed' in creature.status:
+                    if not creature.status['cursed']['active']:
                         creature.minDps = round((creature.minDps / 100) * 50)
                         creature.maxDps = round((creature.maxDps / 100) * 50)
-                        creature.status['cursed'] = True
-                if creature.status['diseased']:
-                    if not creature.status['cursed']:
+                        creature.status['cursed']['active'] = True
+                if 'diseased' in creature.status:
+                    if not creature.status['diseased']['active']:
                         creature.maxHealth = round((creature.maxHealth / 100)
                                                    * 80)
-                        creature.status['diseased'] = True
-                if creature.status['fortified']:
+                        creature.status['diseased']['active'] = True
+                if 'fortified' in creature.status:
                     if not creature.status['fortified']['active']:
                         creature.status['fortified']['active'] = True
                         creature.armorValue = (creature.armorValue / 100) * 150
@@ -345,7 +361,7 @@ class Game:
                             del creature.status['fortified']
                         else:
                             creature.status['fortified']['duration'] -= 1
-                if creature.status['bloodthirst']:
+                if 'bloodthirst' in creature.status:
                     if not creature.status['bloodthirst']['active']:
                         creature.status['bloodthirst']['active'] = True
                         creature.armorValue = (creature.armorValue / 100) * 50
@@ -360,7 +376,7 @@ class Game:
                             del creature.status['bloodthirst']
                         else:
                             creature.status['bloodthirst']['duration'] -= 1
-                if creature.status['crushed']:
+                if 'crushed' in creature.status:
                     if not creature.status['crushed']['active']:
                         creature.status['crushed']['active'] = True
                         creature.armorValue = (creature.armorValue / 100) * 70
@@ -371,7 +387,7 @@ class Game:
                             del creature.status['crushed']
                         else:
                             creature.status['crushed']['duration'] -= 1
-                if creature.status['wounded']:
+                if 'wounded' in creature.status:
                     n = random.randint(1, 8)
                     print(f'{creature.name} took {n} damage from bleeding!')
                     creature.currentHealth -= n
@@ -390,43 +406,39 @@ class Game:
         creature.maxHealth = creatureSave.maxHealth
         creature.armorValue = creatureSave.armorValue
         creature.status = {}
-        player.currentAp = 0
+        if isinstance(creature, cr.Player):
+            creature.currentAp = 0
 
-    def battle(self, player, enemy, cx, cy):
-        playerSave = player
-        enemySave = enemy
-        round = 1
-        battle = True
-        while battle:
-            time.sleep(1)
-            if self.stateCheck(player, playerSave):
-                att = player.attack(enemy)
-                if att:
-                    player.appAdd(att)
-            if isinstance(enemy, cr.Boss):
-                if enemy.death(player):
-                    player.levelCheck()
-                    print('VICTORY ACHIEVED')
-                    time.sleep(1)
-                    self.restore(player, playerSave)
-                    self.flag = False
-                    return True
-            elif enemy.death(player):
+    def battle(self, player, enemy, playerSave, enemySave, round, cx, cy):
+        time.sleep(1)
+        if self.stateCheck(player, playerSave):
+            att = player.attack(enemy)
+            if att:
+                player.appAdd(att)
+        if isinstance(enemy, cr.Boss):
+            if enemy.death(player):
                 player.levelCheck()
+                print('VICTORY ACHIEVED')
                 time.sleep(1)
-                self.oLevel[cx][cy] = None
                 self.restore(player, playerSave)
-                self.restore(enemy, enemySave)
+                self.flag = False
                 return True
+        elif enemy.death(player):
+            player.levelCheck()
             time.sleep(1)
-            if self.stateCheck(enemy, enemySave):
-                self.enemyAttack(enemy, player, round)
-                if player.death():
-                    print('YOU DIED')
-                    self.flag = False
-                    return True
-            time.sleep(1)
-            round += 1
+            self.oLevel[cx][cy] = None
+            self.restore(player, playerSave)
+            self.restore(enemy, enemySave)
+            return True
+        time.sleep(1)
+        if self.stateCheck(enemy, enemySave):
+            self.enemyAttack(enemy, player, round)
+            if player.death():
+                print('YOU DIED')
+                self.flag = False
+                return True
+        time.sleep(1)
+        round += 1
 
     def command(self, player): # Add abilities
         eq = re.compile(r'equip ((\w+\'?\s*)+)')

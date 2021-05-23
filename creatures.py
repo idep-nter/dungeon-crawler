@@ -150,7 +150,7 @@ class Creature:
                 attack = attack * self.critMulti
             attack = round(attack / (1 + (player.armorValue / 100)))
             print(f'{self.name} stole {attack} health from you!')
-            self.currentHealth += hp
+            self.currentHealth += attack
             player.currentHealth -= attack
         else:
             self.attack(player)
@@ -173,6 +173,7 @@ class Creature:
         """
         Player gets poisoned effect if it passes the test.
         """
+        n = random.random()
         if n < 0.2:
             player.status['poisoned']['duration'] = \
                 player.status.setdefault('poisoned',
@@ -184,9 +185,12 @@ class Creature:
         """
         Player gets cursed effect if it passes the test.
         """
+        n = random.random()
         if n < 0.2:
             player.status.setdefault('cursed',
                                      {}).setdefault('active', False)
+            player.status.setdefault('cursed',
+                                     {}).setdefault('duration', '~')
             print('You have been cursed!')
 
     @staticmethod
@@ -194,9 +198,12 @@ class Creature:
         """
         Player gets diseased effect if it passes the test.
         """
+        n = random.random()
         if n < 0.2:
             player.status.setdefault('diseased',
                                      {}).setdefault('active', False)
+            player.status.setdefault('diseased',
+                                     {}).setdefault('duration', '~')
             print('You have been diseased!')
 
     def fortify(self):
@@ -232,7 +239,7 @@ class Player(Creature):
         self.perks = []
         self.status = {}
 
-    def showChar(self): # status print needs to be changed
+    def showChar(self):
         """
         Prints player's stats in formatted way.
         """
@@ -254,17 +261,32 @@ class Player(Creature):
                  'Ring 2': self.ring2, 'Status': self.status,
                  'Perks': self.perks}
         for key, value in attrs.items():
-            if key == 'Perks' or key == 'Status':
+            if key == 'Status':
                 value = strNone(value)
                 if value == '-':
-                    print(f'{key:^15} : {value:^15}')
+                    print(f'{key:^15} : {value:^25}')
                 else:
-                    print(f'{key:^15} : {value}')
+                    n = 1
+                    for k in self.status.keys():
+                        value = self.status[k]['duration']
+                        v = f"{k.capitalize()} : {value} rounds"
+                        if n:
+                            print(f'{key:^25} : {v:^25}')
+                            n -= 1
+                        else:
+                            x = " " * 17
+                            print(f'{x} {v:^25}')
+            elif key == 'Perks':
+                value = strNone(value)
+                if value == '-':
+                    print(f'{key:^25} : {value:^25}')
+                else:
+                    print(f'{key:^25} : {value}')
             elif isinstance(value, it.Item):
-                print(f'{key:^15} : {value.name:^15}')
+                print(f'{key:^25} : {value.name:^25}')
             else:
                 value = strNone(value)
-                print(f'{key:^15} : {value:^15}')
+                print(f'{key:^25} : {value:^25}')
 
     def showInventory(self):
         """
@@ -504,7 +526,7 @@ class Player(Creature):
         perks = {'Ninja': '+0.1 evasion', 'Berserk': '+0.1 crit chance',
                  'Bud Spencer': '+50 max health', 'Defendor': '+30 armor'}
         for key, value in perks.items():
-            print(f'{key:^15} : {value:^15}')
+            print(f'{key:^25} : {value:^25}')
         while True:
             try:
                 choice = input('Choose your new Perk!')
@@ -536,11 +558,13 @@ class Player(Creature):
         from a list.
         """
         ap = 0
-        apList =[10, 20, 40, 80, 160]
+        apList = [1, 10, 20, 40, 80, 160]
         for i in apList:
-            if attack > i:
+            if attack >= i:
                 ap += 1
-        return ap
+        self.currentAp += ap
+        if self.currentAp > self.maxAp:
+            self.currentAp = self.maxAp
 
 
 class Monster(Creature):
