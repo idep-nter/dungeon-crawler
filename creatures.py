@@ -137,10 +137,10 @@ class Creature:
             attack = random.randint(self.minDps, self.maxDps)
             if random.random() < player.evasion:
                 print(f'{self.name} missed the attack!')
-                return False
+                return True
             if random.random() < player.blockChance:
                 print(f'{player.name} blocked the attack!')
-                return False
+                return True
             if random.random() < self.critChance:
                 attack = attack * self.critMulti
             attack = round(attack / (1 + (player.armorValue / 100)))
@@ -148,7 +148,7 @@ class Creature:
             self.currentHealth += attack
             player.currentHealth -= attack
         else:
-            self.attack(player)
+            return False
 
     @staticmethod
     def stun(player):

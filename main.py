@@ -267,67 +267,51 @@ class Game:
         self.printAbility(player)
         print(f'\n{enemy.name}\n' + eHp)
 
-
     @staticmethod
-    def enemyAttack(enemy, player, round):
+    def makeAttack(attack, crit, target):
+        if attack:
+            if crit:
+                print(f'{target.name} was critically hit by {attack}!')
+            else:
+                print(f'{target.name} was hit by {attack}!')
+            target.currentHealth -= attack
+
+    def enemyAttack(self, enemy, player, round):
         if enemy == zombie:
             att, crit = enemy.attack(player)
-            if att:
-                if crit:
-                    print(f'{player.name} was critically hit by {att}!')
-                else:
-                    print(f'{player.name} was hit by {att}!')
-                player.currentHealth -= att
+            self.makeAttack(att, crit, player)
             enemy.regenerate()
         elif enemy == vileBat:
-            att = enemy.stealLife(player)
+            steal = enemy.stealLife(player)
+            if not steal:
+                att, crit = enemy.attack(player)
+                self.makeAttack(att, crit, player)
         elif enemy == giantSpider:
             att, crit = enemy.attack(player)
+            self.makeAttack(att, crit, player)
             if att:
-                if crit:
-                    print(f'{player.name} was critically hit by {att}!')
-                else:
-                    print(f'{player.name} was hit by {att}!')
-                player.currentHealth -= att
                 enemy.poison(player)
         elif enemy == lesserShade:
             att, crit = enemy.attack(player)
+            self.makeAttack(att, crit, player)
             if att:
-                if crit:
-                    print(f'{player.name} was critically hit by {att}!')
-                else:
-                    print(f'{player.name} was hit by {att}!')
-                player.currentHealth -= att
                 enemy.curse(player)
         elif enemy == rat:
             att, crit = enemy.attack(player)
+            self.makeAttack(att, crit, player)
             if att:
-                if crit:
-                    print(f'{player.name} was critically hit by {att}!')
-                else:
-                    print(f'{player.name} was hit by {att}!')
-                player.currentHealth -= att
                 enemy.disease(player)
         elif enemy == darkKnight:
             if round == 1 or round % 5 == 0:
                 enemy.fortify()
             else:
                 att, crit = enemy.attack(player)
+                self.makeAttack(att, crit, player)
                 if att:
-                    if crit:
-                        print(f'{player.name} was critically hit by {att}!')
-                    else:
-                        print(f'{player.name} was hit by {att}!')
-                    player.currentHealth -= att
                     enemy.stun(player)
         else:
             att, crit = enemy.attack(player)
-            if att:
-                if crit:
-                    print(f'{player.name} was critically hit by {att}!')
-                else:
-                    print(f'{player.name} was hit by {att}!')
-                player.currentHealth -= att
+            self.makeAttack(att, crit, player)
 
     @staticmethod
     def stateCheck(creature, creatureSave):
@@ -469,13 +453,8 @@ class Game:
             a = input('\nWhat\'s your action? ').lower()
             if a == 'attack':
                 att, crit = player.attack(enemy)
-                if att:
-                    if crit:
-                        print(f'{enemy.name} was critically hit by {att}!')
-                    else:
-                        print(f'{enemy.name} was hit by {att}!')
-                    player.appAdd(att)
-                    enemy.currentHealth -= att
+                self.makeAttack(att, crit, enemy)
+                player.appAdd(att)
                 return True
             if a == 'help':
                 help()
