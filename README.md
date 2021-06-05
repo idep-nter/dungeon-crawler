@@ -1,8 +1,3 @@
-** **The current build isn't working AGAIN due to an implementation of monster and player abilities** **
-
-
-
-
 Here it is - my masterpiece - the first level of my text rpg game fully made in OOP.
 
 The point of the game is to defeat the main boss of the randomly generated level which consists of small rooms many of which consists of objects and monsters.
