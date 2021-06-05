@@ -38,18 +38,13 @@ class Longsword(Weapon):
                          critChance, critMulti, weight)
 
     @staticmethod
-    def heroicStrike(player):
+    def heroicStrike(func):
         """
         Modifies player's attack by 150 %.
         """
-        def inner(func):
-
-            def wrapper(*args, **kwargs):
-                attack = random.randint(player.minDps, player.maxDps) / 100 * \
-                         150
-                player.currentAp -= 1
-                return func(attack, *args, **kwargs)
-            return wrapper
+        def inner():
+            attack = func(*args, **kwargs)
+            return attack
         return inner
 
     @staticmethod
@@ -245,7 +240,7 @@ class Greataxe(Weapon):
     @staticmethod
     def rampage():
         """
-        The player attacks 3 times.
+        The player attacks 2 times.
         """
         pass
 
@@ -434,4 +429,4 @@ class RegenPotion(Potion):
     def regen(player):
         player.status.setdefault('regeneration',
                                  {}).setdefault('duration',
-                                                3) + 3
+                                                5) + 5

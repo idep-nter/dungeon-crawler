@@ -140,7 +140,7 @@ shrine = ob.Shrine()
 
 
 mapObjects = [rat, vileBat, zombie, skeletonWarrior, lesserShade, giantSpider,
-              chest, shrine, None, None]
+              chest, shrine, None]
 
 
 class Level(list):
@@ -184,7 +184,7 @@ class Game:
                 continue
             else:
                 map[nList][nIndex] = darkKnight
-                break
+                return map
         return map
 
     def movePlayer(self):
@@ -239,83 +239,95 @@ class Game:
             self.oLevel[cx][cy] = None
         elif isinstance(object, cr.Monster):
             print(f'Damn, you see a {object.name}!')
-            pAction = True
-            round = 1
-            playerSave = player
-            enemySave = object
-            while pAction:
-                self.showStats(player, object)
-                c = self.command(player)
-                if c == 'auto-attack' or c == 'auto':
-                    while True:
-                        if self.battle(player, object, playerSave, enemySave,
-                                       round, cx, cy):
-                            pAction = False
-                            break
-                        round += 1
-                else:
-                    if self.battle(player, object, playerSave, enemySave,
-                                   round, cx, cy):
-                        pAction = False
-                    round += 1
+            self.battle(player, object, cx, cy)
         elif isinstance(object, cr.Boss):
             print(f'Damn, you see a {object.name}! He looks tough!')
-            pAction = True
-            round = 1
-            playerSave = player
-            enemySave = object
-            while pAction:
-                self.showStats(player, object)
-                c = self.command(player)
-                if c == 'auto-attack' or 'auto':
-                    while True:
-                        if self.battle(player, object, playerSave, enemySave,
-                                       round, cx, cy):
-                            pAction = False
-                            break
-                        round += 1
-                else:
-                    if self.battle(player, object, playerSave, enemySave,
-                                   round, cx, cy):
-                        pAction = False
-                    round += 1
+            self.battle(player, object, cx, cy)
 
     @staticmethod
-    def showStats(player, enemy): # add abilities
+    def printAbility(player):
+        if isinstance(player.weapon, it.Longsword):
+            print("Heroic Strike - 1 ap\nPommel Attack - 2 ap")
+        elif isinstance(player.weapon, it.Greatsword):
+            print("Execute - 1 ap\nSkullsplitter - 2 ap")
+        elif isinstance(player.weapon, it.Dagger):
+            print("Poison Strike - 1 ap\nSinister Strike - 2 ap")
+        elif isinstance(player.weapon, it.SmallAxe):
+            print("Deep Wounds - 1 ap\nArmor Crush - 2 ap")
+        elif isinstance(player.weapon, it.Greataxe):
+            print("Bloodthirst - 1 ap\nRampage - 2 ap")
+        if player.shield:
+            print("Shield Bash - 1 ap\nShield Wall - 2 ap")
+
+    def showStats(self, player, enemy):
         hp = f'HP: {player.currentHealth}/{player.maxHealth}'
         ap = f'AP: {player.currentAp}/{player.maxAp}'
         eHp = f'HP: {enemy.currentHealth}/{enemy.maxHealth}'
-        print(f'\n{player.name}\n' + hp + '\n' + ap + '\n')
-        print(f'{enemy.name}\n' + eHp)
+        print(f'\n{player.name}\n' + hp + '\n' + ap)
+        self.printAbility(player)
+        print(f'\n{enemy.name}\n' + eHp)
+
 
     @staticmethod
     def enemyAttack(enemy, player, round):
         if enemy == zombie:
-            enemy.attack(player)
+            att, crit = enemy.attack(player)
+            if att:
+                if crit:
+                    print(f'{player.name} was critically hit by {att}!')
+                else:
+                    print(f'{player.name} was hit by {att}!')
+                player.currentHealth -= att
             enemy.regenerate()
         elif enemy == vileBat:
-            enemy.stealLife(player)
+            att = enemy.stealLife(player)
         elif enemy == giantSpider:
-            att = enemy.attack(player)
+            att, crit = enemy.attack(player)
             if att:
+                if crit:
+                    print(f'{player.name} was critically hit by {att}!')
+                else:
+                    print(f'{player.name} was hit by {att}!')
+                player.currentHealth -= att
                 enemy.poison(player)
         elif enemy == lesserShade:
-            att = enemy.attack(player)
+            att, crit = enemy.attack(player)
             if att:
+                if crit:
+                    print(f'{player.name} was critically hit by {att}!')
+                else:
+                    print(f'{player.name} was hit by {att}!')
+                player.currentHealth -= att
                 enemy.curse(player)
         elif enemy == rat:
-            att = enemy.attack(player)
+            att, crit = enemy.attack(player)
             if att:
+                if crit:
+                    print(f'{player.name} was critically hit by {att}!')
+                else:
+                    print(f'{player.name} was hit by {att}!')
+                player.currentHealth -= att
                 enemy.disease(player)
         elif enemy == darkKnight:
             if round == 1 or round % 5 == 0:
                 enemy.fortify()
             else:
-                att = enemy.attack(player)
+                att, crit = enemy.attack(player)
                 if att:
+                    if crit:
+                        print(f'{player.name} was critically hit by {att}!')
+                    else:
+                        print(f'{player.name} was hit by {att}!')
+                    player.currentHealth -= att
                     enemy.stun(player)
         else:
-            enemy.attack(player)
+            att, crit = enemy.attack(player)
+            if att:
+                if crit:
+                    print(f'{player.name} was critically hit by {att}!')
+                else:
+                    print(f'{player.name} was hit by {att}!')
+                player.currentHealth -= att
 
     @staticmethod
     def stateCheck(creature, creatureSave):
@@ -328,11 +340,10 @@ class Game:
                     creature.status['poisoned']['duration'] -= 1
                     if creature.status['poisoned']['duration'] == 0:
                         del creature.status['poisoned']
-                if creature.status['stunned']:
+                if 'stunned' in creature.status:
                     creature.status['stunned']['duration'] -= 1
                     if creature.status['stunned'] == 0:
                         del creature.status['stunned']
-                    return False
                 if 'regeneration' in creature.status:
                     n = random.randint(3, 8)
                     creature.currentHealth += n
@@ -349,6 +360,8 @@ class Game:
                     if not creature.status['diseased']['active']:
                         creature.maxHealth = round((creature.maxHealth / 100)
                                                    * 80)
+                        if creature.currentHealth > creature.maxHealth:
+                            creature.currentHealth = creature.maxHealth
                         creature.status['diseased']['active'] = True
                 if 'fortified' in creature.status:
                     if not creature.status['fortified']['active']:
@@ -409,86 +422,131 @@ class Game:
         if isinstance(creature, cr.Player):
             creature.currentAp = 0
 
-    def battle(self, player, enemy, playerSave, enemySave, round, cx, cy):
-        time.sleep(1)
-        if self.stateCheck(player, playerSave):
-            att = player.attack(enemy)
-            if att:
-                player.appAdd(att)
-        if isinstance(enemy, cr.Boss):
-            if enemy.death(player):
-                player.levelCheck()
-                print('VICTORY ACHIEVED')
+    def battle(self, player, enemy, cx, cy):
+        round = 1
+        combat = False
+        enemySave = enemy
+        playerSave = player
+        while True:
+            if self.stateCheck(player, playerSave):
+                self.showStats(player, enemy)
+                self.command(player, enemy, combat)
                 time.sleep(1)
+                if not combat:
+                    playerSave = player
+                    combat = True
+            if isinstance(enemy, cr.Boss):
+                if enemy.death(player):
+                    player.levelCheck()
+                    print('VICTORY ACHIEVED')
+                    time.sleep(1)
+                    self.restore(player, playerSave)
+                    self.flag = False
+                    return True
+            elif enemy.death(player):
+                player.levelCheck()
+                time.sleep(1)
+                self.oLevel[cx][cy] = None
                 self.restore(player, playerSave)
-                self.flag = False
+                self.restore(enemy, enemySave)
                 return True
-        elif enemy.death(player):
-            player.levelCheck()
             time.sleep(1)
-            self.oLevel[cx][cy] = None
-            self.restore(player, playerSave)
-            self.restore(enemy, enemySave)
-            return True
-        time.sleep(1)
-        if self.stateCheck(enemy, enemySave):
-            self.enemyAttack(enemy, player, round)
-            if player.death():
-                print('YOU DIED')
-                self.flag = False
-                return True
-        time.sleep(1)
-        round += 1
+            if self.stateCheck(enemy, enemySave):
+                self.enemyAttack(enemy, player, round)
+                if player.death():
+                    print('YOU DIED')
+                    self.flag = False
+                    return True
+            time.sleep(1)
+            round += 1
 
-    def command(self, player): # Add abilities
+    def command(self, player, enemy, combat):
         eq = re.compile(r'equip ((\w+\'?\s*)+)')
         uneq = re.compile(r'unequip ((\w+\'?\s*)+)')
         view = re.compile(r'view ((\w+\'?\s*)+)')
         drink = re.compile(r'drink ((\w+\'?\s*)+)')
         while True:
-            try:
-                a = input('\nWhat\'s your action? ').lower()
-                if a == 'attack' or a == 'auto-attack' or a == 'auto':
-                    return a
-                if a == 'help':
-                    help()
-                elif a == 'char':
-                    player.showChar()
-                elif a == 'inv':
-                    player.showInventory()
-                elif 'unequip' in a:
-                    mo = uneq.search(a)
-                    itemName = mo.group(1)
-                    item = player.itemSearch(player, itemName)
-                    if item:
-                        player.unequipItem(item)
-                        print(f'{item.name} unequiped!')
-                elif 'equip' in a:
-                    mo = eq.search(a)
-                    itemName = mo.group(1)
-                    item = player.itemSearch(player, itemName)
-                    if item:
-                        player.equipItem(item)
-                elif 'view' in a:
-                    mo = view.search(a)
-                    itemName = mo.group(1)
-                    item = player.itemSearch(player, itemName)
-                    if item:
-                        item.itemView()
-                elif 'drink' in a:
-                    mo = drink.search(a)
-                    itemName = mo.group(1)
-                    potion = player.itemSearch(player, itemName)
-                    player.drinkPotion(potion)
-                elif a == 'map':
-                    print('\n' + str(self.level) + '\n')
-                elif a == Game.exit:
-                    self.flag = False
+            a = input('\nWhat\'s your action? ').lower()
+            if a == 'attack':
+                att, crit = player.attack(enemy)
+                if att:
+                    if crit:
+                        print(f'{enemy.name} was critically hit by {att}!')
+                    else:
+                        print(f'{enemy.name} was hit by {att}!')
+                    player.appAdd(att)
+                    enemy.currentHealth -= att
+                return True
+            if a == 'help':
+                help()
+            elif a == 'char':
+                player.showChar()
+            elif a == 'inv':
+                player.showInventory()
+            elif 'unequip' in a:
+                if combat:
+                    print("Cannot unequip an item in combat!")
+                    continue
+                mo = uneq.search(a)
+                itemName = mo.group(1)
+                item = player.itemSearch(player, itemName)
+                if item:
+                    player.unequipItem(item)
+                    print(f'{item.name} unequiped!')
+            elif 'equip' in a:
+                if combat:
+                    print("Cannot equip an item in combat!")
+                    continue
+                mo = eq.search(a)
+                itemName = mo.group(1)
+                item = player.itemSearch(player, itemName)
+                if item:
+                    player.equipItem(item)
+            elif 'view' in a:
+                mo = view.search(a)
+                itemName = mo.group(1)
+                item = player.itemSearch(player, itemName)
+                if item:
+                    item.itemView()
+            elif 'drink' in a:
+                mo = drink.search(a)
+                itemName = mo.group(1)
+                potion = player.itemSearch(player, itemName)
+                player.drinkPotion(potion)
+            elif a == 'map':
+                print('\n' + str(self.level) + '\n')
+            elif a == Game.exit:
+                self.flag = False
+            else:
+                self.special(player, enemy, a)
+
+    @staticmethod
+    def special(player, enemy, c):
+        if c.lower() == 'heroic strike':
+            if isinstance(player.weapon, it.Longsword):
+                if player.currentAp >= 1:
+                    att = it.Longsword.heroicStrike(player.attack(enemy))()
+                    player.currentAp -= 1
+                    if att:
+                        print(f'{enemy.name} was hit by {att}!')
+                    return True
                 else:
-                    raise ValueError
-            except ValueError:
-                print('Please enter correct command or type \"help\".')
-                continue
+                    print('Not enough AP!')
+                    return False
+            else:
+                print('You can\'t do that!')
+                return False
+        if c.lower() == 'pommel attack':
+            if isinstance(player.weapon, it.Longsword):
+                if player.currentAp >= 2:
+                    it.Longsword.pommelAttack(player, enemy(player.attack(enemy)))()
+                    return True
+                else:
+                    print('Not enough AP!')
+                    return False
+        else:
+            print('You can\'t do that!')
+            return False
 
     def play(self):
         intro1()

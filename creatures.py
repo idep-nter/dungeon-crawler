@@ -31,20 +31,15 @@ class Creature:
         if not rnd:
             if random.random() < target.evasion:
                 print(f'{self.name} missed the attack!')
-                return False
+                return False, False
             if random.random() < target.blockChance:
                 print(f'{target.name} blocked the attack!')
-                return False
+                return False, False
         if random.random() < self.critChance:
             crit = True
             attack = attack * self.critMulti
         attack = round(attack / (1 + (target.armorValue / 100)))
-        if crit:
-            print(f'{target.name} was critically hit by {attack}!')
-        else:
-            print(f'{target.name} was hit by {attack}!')
-        target.currentHealth -= attack
-        return attack
+        return attack, crit
 
     def creatureType(self):
         """
@@ -257,9 +252,9 @@ class Player(Creature):
                      dps, 'Armor Value': self.armorValue, 'Block Chance':
                      blockChance, 'Evasion': evasion, 'Crit Chance': critChance,
                  'Crit Multiplier': critMulti, 'Weapon': self.weapon,
-                 'Armor': self.armor, 'Ring 1': self.ring1,
-                 'Ring 2': self.ring2, 'Status': self.status,
-                 'Perks': self.perks}
+                 'Shield': self.shield, 'Armor': self.armor,
+                 'Ring 1': self.ring1, 'Ring 2': self.ring2,
+                 'Status': self.status, 'Perks': self.perks}
         for key, value in attrs.items():
             if key == 'Status':
                 value = strNone(value)
@@ -298,7 +293,7 @@ class Player(Creature):
 
     def equipItem(self, item):
         """
-        If it passes conditions if add item to the right slot and unequips
+        If it passes conditions it adds an item to the right slot and unequips
         previous item if any. It also modify player's stats by the item.
         """
         try:
@@ -451,9 +446,8 @@ class Player(Creature):
             else:
                 print(f'{heal} health healed!')
                 self.inventory.remove(potion)
-        elif isinstance(potion, it.Regen):
-            target.status['regeneration'] = \
-                target.status.setdefault('regeneration', 5) + 5
+        elif isinstance(potion, it.RegenPotion):
+            potion.regen(self)
         elif isinstance(potion, it.Antidote):
             potion.curePoison(self)
             print('Poison was cured!')
