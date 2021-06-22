@@ -169,6 +169,10 @@ class Game:
         self.movePlayer()
 
     def mapGenerator(self):
+        """
+        Generates a 8x8 grid with random objects and starting position for the
+        player.
+        """
         map = []
         for i in range(5):
             line = []
@@ -188,6 +192,11 @@ class Game:
         return map
 
     def movePlayer(self):
+        """
+        Uses coordinates to mark the player's current and previous potions and
+        and checks the position of a boss of the level.
+        Also raises an error if the player tries to move ouside the map grid.
+        """
         try:
             px, py = self.prevPos
             cx, cy = self.currPos
@@ -205,6 +214,11 @@ class Game:
             return False
 
     def bossCheck(self, cx, cy):
+        """
+        If the boss is located on a position the player tries to move to, he'll
+        be asked if he really want to move there. If not '!' will be marked on
+        the map.
+        """
         object = self.oLevel[cx][cy]
         if isinstance(object, cr.Boss):
             while True:
@@ -224,6 +238,9 @@ class Game:
         return True
 
     def action(self, player):
+        """
+        Depending on an object on the player's position given action will start.
+        """
         cx, cy = self.currPos
         object = self.oLevel[cx][cy]
         if isinstance(object, ob.Shrine):
@@ -246,6 +263,9 @@ class Game:
 
     @staticmethod
     def printAbility(player):
+        """
+        Prints the player's abilities depending on a weapon he has equiped.
+        """
         if isinstance(player.weapon, it.Longsword):
             print("Heroic Strike - 1 ap\nPommel Attack - 2 ap")
         elif isinstance(player.weapon, it.Greatsword):
@@ -260,6 +280,9 @@ class Game:
             print("Shield Bash - 1 ap\nShield Wall - 2 ap")
 
     def showStats(self, player, enemy):
+        """
+        Prints stats and abilities of the player and an enemy.
+        """
         hp = f'HP: {player.currentHealth}/{player.maxHealth}'
         ap = f'AP: {player.currentAp}/{player.maxAp}'
         eHp = f'HP: {enemy.currentHealth}/{enemy.maxHealth}'
@@ -269,6 +292,9 @@ class Game:
 
     @staticmethod
     def makeAttack(attack, crit, target):
+        """
+        Makes an attack if it's successful and prints the outcome.
+        """
         if attack:
             if crit:
                 print(f'{target.name} was critically hit by {attack}!')
@@ -277,6 +303,9 @@ class Game:
             target.currentHealth -= attack
 
     def enemyAttack(self, enemy, player, round):
+        """
+        Makes an enemy attack and special abilities if it has any.
+        """
         if enemy == zombie:
             att, crit = enemy.attack(player)
             self.makeAttack(att, crit, player)
@@ -315,6 +344,11 @@ class Game:
 
     @staticmethod
     def stateCheck(creature, creatureSave):
+        """
+        Checks creature's statuses from it's list and makes and action based
+        on it.
+        If the duration of a status becomes 0 it deletes it from the list.
+        """
         try:
             if creature.status:
                 if 'poisoned' in creature.status:
@@ -398,6 +432,10 @@ class Game:
 
     @staticmethod
     def restore(creature, creatureSave):
+        """
+        Restores statues and stats of a creature to the state before the fight.
+        In case of the player it also resets ap points.
+        """
         creature.minDps = creatureSave.minDps
         creature.minDps = creatureSave.maxDps
         creature.maxHealth = creatureSave.maxHealth
@@ -407,6 +445,15 @@ class Game:
             creature.currentAp = 0
 
     def battle(self, player, enemy, cx, cy):
+        """
+        Saves the player and and enemy to be restored from after the fight.
+        Combat is by default False for player to be able switch gear.
+        It also counts rounds for enemy abilities which depends on that.
+        After start of the fight it checks states, prints stats and inputs for a
+        command.
+        After an attack checks hp an enemy and if it's the boss it ends the game.
+        If enemy won't die after the attack the enemy round starts.
+        """
         round = 1
         combat = False
         enemySave = enemy
@@ -445,6 +492,11 @@ class Game:
             round += 1
 
     def command(self, player, enemy, combat):
+        """
+        Inputs the player for a command.
+        If it won't match with any of basic ones it continues to special
+        abilities function.
+        """
         eq = re.compile(r'equip ((\w+\'?\s*)+)')
         uneq = re.compile(r'unequip ((\w+\'?\s*)+)')
         view = re.compile(r'view ((\w+\'?\s*)+)')
@@ -497,37 +549,105 @@ class Game:
             elif a == Game.exit:
                 self.flag = False
             else:
-                self.special(player, enemy, a)
+                if self.special(player, enemy, a):
+                    return True
+
+    def special(self, player, enemy, c):
+        """
+        Checks if the input matches with any special abilities and if it does,
+        it checks conditions.
+        If it doesn't match anything it returns False for an another player's
+        input.
+        """
+        if c.lower() == 'heroic strike':
+            if self.specialCheck(player, 1, it.Longsword):
+                it.Longsword.heroicStrike(self, player, enemy)
+                player.currentAp -= 1
+                return True
+        elif c.lower() == 'pommel attack':
+            if self.specialCheck(player, 2, it.Longsword):
+                it.Longsword.pommelAttack(self, player, enemy)
+                player.currentAp -= 2
+                return True
+        elif c.lower() == 'execute':
+            if self.specialCheck(player, 1, it.Greatsword):
+                it.Greatsword.execute(self, player, enemy)
+                player.currentAp -= 1
+                return True
+        elif c.lower() == 'skullsplitter':
+            if self.specialCheck(player, 2, it.Greatsword):
+                it.Greatsword.skullsplitter(self, player, enemy)
+                player.currentAp -= 2
+                return True
+        elif c.lower() == 'poison strike':
+            if self.specialCheck(player, 1, it.Dagger):
+                it.Dagger.poisonStrike(player, enemy)
+                player.currentAp -= 1
+                return True
+        elif c.lower() == 'sinister strike':
+            if self.specialCheck(player, 2, it.Dagger):
+                it.Dagger.sinisterStrike(self, player, enemy)
+                player.currentAp -= 2
+                return True
+        elif c.lower() == 'deep wounds':
+            if self.specialCheck(player, 1, it.SmallAxe):
+                it.SmallAxe.deepWounds(player, enemy)
+                player.currentAp -= 1
+                return True
+        elif c.lower() == 'armor crush':
+            if self.specialCheck(player, 2, it.SmallAxe):
+                it.SmallAxe.armorCrush(player, enemy)
+                player.currentAp -= 2
+                return True
+        elif c.lower() == 'bloodthirst':
+            if self.specialCheck(player, 1, it.Greataxe):
+                it.Greataxe.bloodthirst(player)
+                player.currentAp -= 1
+                return True
+        elif c.lower() == 'rampage':
+            if self.specialCheck(player, 2, it.Greataxe):
+                it.Greataxe.rampage(self, player, enemy)
+                player.currentAp -= 2
+                return True
+        elif c.lower() == 'shield bash':
+            if self.specialCheck(player, 1, it.Shield):
+                it.Shield.shieldBash(player, enemy)
+                player.currentAp -= 1
+                return True
+        elif c.lower() == 'shield wall':
+            if self.specialCheck(player, 2, it.Shield):
+                it.Shield.shieldWall(player)
+                player.currentAp -= 1
+                return True
+        else:
+            print('Invalid command')
+            return False
 
     @staticmethod
-    def special(player, enemy, c):
-        if c.lower() == 'heroic strike':
-            if isinstance(player.weapon, it.Longsword):
-                if player.currentAp >= 1:
-                    att = it.Longsword.heroicStrike(player.attack(enemy))()
-                    player.currentAp -= 1
-                    if att:
-                        print(f'{enemy.name} was hit by {att}!')
-                    return True
-                else:
-                    print('Not enough AP!')
-                    return False
+    def specialCheck(player, ap, instance):
+        """
+        Checks if the player meets conditions to do special attack and returns
+        False if he doesn't.
+        """
+        if isinstance(player.weapon, instance) or \
+                isinstance(player.shield, instance):
+            if player.currentAp >= ap:
+                return True
             else:
-                print('You can\'t do that!')
+                print('Not enough AP!')
                 return False
-        if c.lower() == 'pommel attack':
-            if isinstance(player.weapon, it.Longsword):
-                if player.currentAp >= 2:
-                    it.Longsword.pommelAttack(player, enemy(player.attack(enemy)))()
-                    return True
-                else:
-                    print('Not enough AP!')
-                    return False
         else:
             print('You can\'t do that!')
             return False
 
     def play(self):
+        """
+        Prints the intro, rules and inputs the player for his name.
+        Prints the map of the level and asks him for a direction he wants to
+        move to.
+        If an error doesn't occur it moves the player and starts an action
+        depending on an object on that location.
+        """
         intro1()
         name = input()
         player = cr.Player(name)
@@ -576,11 +696,11 @@ def gameRules():
     print("""
                                 GAME RULES
 ================================================================================
-The dungeon you want to escape from consists of several rooms which are filled
-with objects and monsters. At the start and after clearing each room you will
-be asked which way do you want to continue. If you encounter a monster you will
-be given time to prepare e.g. refill health, switch gear etc. You can also do it 
-after each round.
+The dungeon you want to escape from consists of several rooms which are mostly 
+filled with objects and monsters. At the start and after clearing each room you 
+will be asked which way do you want to continue. After an encounter of a monster 
+you have a chance to switch gear before the fight starts, potions can be used 
+during the fight though.
 
 The game ends when you defeat the boss of the level or you die trying... 
 ================================================================================
@@ -592,7 +712,8 @@ def help():
 COMMANDS:
 map                shows a map
 attack             attack a monster
-auto-attack        attack a monster until the fight ends
+'special attack'   attack a monster with special attack of the currently equiped 
+                   weapon
 char               shows your statistics and equiped gear
 inv                shows your inventory 
 equip 'item'       equip an item

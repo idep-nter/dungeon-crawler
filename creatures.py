@@ -18,23 +18,21 @@ class Creature:
         self.critMulti = critMulti
         self.blockChance = blockChance
 
-    def attack(self, target, attack=None, rnd=None):
+    def attack(self, target):
         """
         The base attack of a creature which tries to pass target's evasion and
         block chance if the attack already didn't pass by decorator.
         Then it tries to modify attack by a crit chance.
         At the end the the attack number is reduced by target's armor value.
         """
-        if not attack:
-            attack = random.randint(self.minDps, self.maxDps)
+        attack = random.randint(self.minDps, self.maxDps)
         crit = False
-        if not rnd:
-            if random.random() < target.evasion:
-                print(f'{self.name} missed the attack!')
-                return False, False
-            if random.random() < target.blockChance:
-                print(f'{target.name} blocked the attack!')
-                return False, False
+        if random.random() < target.evasion:
+            print(f'{self.name} missed the attack!')
+            return False, False
+        if random.random() < target.blockChance:
+            print(f'{target.name} blocked the attack!')
+            return False, False
         if random.random() < self.critChance:
             crit = True
             attack = attack * self.critMulti

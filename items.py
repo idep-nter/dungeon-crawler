@@ -38,43 +38,31 @@ class Longsword(Weapon):
                          critChance, critMulti, weight)
 
     @staticmethod
-    def heroicStrike(func):
+    def heroicStrike(game, player, enemy):
         """
         Modifies player's attack by 150 %.
         """
-        def inner():
-            attack = func(*args, **kwargs)
-            return attack
-        return inner
+        att, crit = player.attack(enemy)
+        if att:
+            att = round(att / 100 * 150)
+            game.makeAttack(att, crit, enemy)
+
 
     @staticmethod
-    def pommelAttack(player, target):
+    def pommelAttack(game, player, enemy):
         """
         If target doesn't evade or block, player attacks target by 70% damage
         and stun it for a round.
         """
-        def inner(func):
+        att, crit = player.attack(enemy)
+        if att:
+            att = round(att / 100 * 70)
+            print(f'{enemy.name} is stunned!')
+            enemy.status['stunned']['duration'] = \
+                enemy.status.setdefault('stunned',
+                                         {}).setdefault('duration', 0) + 1
+            game.makeAttack(att, crit, enemy)
 
-            def wrapper(*args, **kwargs):
-                player.currentAp -= 2
-                attack = random.randint(player.minDps, player.maxDps) / 100 * \
-                         70
-                n = random.random()
-                if n < target.evasion:
-                    n = random.random()
-                    if n < target.blockChance:
-                        print(f'{target.name} is stunned!')
-                        target.status['stunned']['duration'] = \
-                            target.status.setdefault('stunned',
-                                                     {}).setdefault('duration',
-                                                                    0) + 1
-                        return func(attack, rnd=True, *args, **kwargs)
-                    else:
-                        print(f'{target.name} blocked the attack!')
-                else:
-                    print(f'{player.name} missed the attack!')
-            return wrapper
-        return inner
 
 class Greatsword(Weapon):
     def __init__(self, name, type, rarity, value, minDps, maxDps,
@@ -83,50 +71,32 @@ class Greatsword(Weapon):
                          critChance, critMulti, weight)
 
     @staticmethod
-    def execute(player, target):
+    def execute(game, player, enemy):
         """
         The target instantly dies if it's under 30 % of health else player's
         attack is reduced to 70 %.
         """
-        def inner(func):
-
-            def wrapper(*args, **kwargs):
-                player.currentAp -= 1
-                health = target.currentHealth / (target.maxHealth / 100)
-                if health < 30:
-                    n = random.random()
-                    if n < target.evasion:
-                        n = random.random()
-                        if n < target.blockChance:
-                            target.currentHealth = 0
-                        else:
-                            print(f'{target.name} blocked the attack!')
-                    else:
-                        print(f'{player.name} missed the attack!')
-                else:
-                    attack = random.randint(player.minDps, player.maxDps) / \
-                             100 * 70
-                    return func(attack, *args, **kwargs)
-            return wrapper
-        return inner
+        att, crit = player.attack(enemy)
+        if att:
+            health = enemy.currentHealth / (enemy.maxHealth / 100)
+            if health < 30:
+                enemy.currentHealth = 0
+            else:
+                att = round(att / 100 * 70)
+                game.makeAttack(att, crit, enemy)
 
     @staticmethod
-    def skullsplitter(player):
+    def skullsplitter(game, player, enemy):
         """
         Modifies player's attack by 30 % for each available action point.
         """
-        def inner(func):
-
-            def wrapper(*args, **kwargs):
-                aMod = 0
-                for i in range(player.currentAp):
-                    aMod += 0.3
-                player.currentAp = 0
-                attack = random.randint(player.minDps, player.maxDps) * aMod
-                player.currentAp -= 2
-                return func(attack, *args, **kwargs)
-            return wrapper
-        return inner
+        att, crit = player.attack(enemy)
+        if att:
+            aMod = 0
+            for i in range(player.currentAp):
+                aMod += 0.3
+            att *= aMod
+            game.makeAttack(att, crit, enemy)
 
 
 class Dagger(Weapon):
@@ -136,38 +106,26 @@ class Dagger(Weapon):
                          critChance, critMulti, weight)
 
     @staticmethod
-    def poisonStrike(player, target):
+    def poisonStrike(player, enemy):
         """
         If target doesn't evade or block, it gets poisoned.
         """
-        player.currentAp -= 1
-        n = random.random()
-        if n < target.evasion:
-            n = random.random()
-            if n < target.blockChance:
-                print(f'{target.name} is poisoned!')
-                target.status['poisoned']['duration'] = \
-                    target.status.setdefault('poisoned',
-                                             {}).setdefault('duration', 0) + 3
-            else:
-                print(f'{target.name} blocked the attack!')
-        else:
-            print(f'{player.name} missed the attack!')
+        att, crit = player.attack(enemy)
+        if att:
+            print(f'{enemy.name} is poisoned!')
+            enemy.status['poisoned']['duration'] = \
+                enemy.status.setdefault('poisoned',
+                                         {}).setdefault('duration', 0) + 3
+
 
     @staticmethod
-    def sinisterStrike(player):
+    def sinisterStrike(game, player, enemy):
         """
         Modifies player's attack by 175 %.
         """
-        def inner(func):
-
-            def wrapper(*args, **kwargs):
-                attack = random.randint(player.minDps, player.maxDps) / 100 * \
-                         175
-                player.currentAp -= 2
-                return func(attack, *args, **kwargs)
-            return wrapper
-        return inner
+        att, crit = player.attack(enemy)
+        att = round(att / 100 * 150)
+        game.makeAttack(att, crit, enemy)
 
 
 class SmallAxe(Weapon):
@@ -177,45 +135,32 @@ class SmallAxe(Weapon):
                          critChance, critMulti, weight)
 
     @staticmethod
-    def deepWounds(player, target):
+    def deepWounds(player, enemy):
         """
         If target doesn't evade or block, it gets bleeding effect.
         """
-        player.currentAp -= 1
-        n = random.random()
-        if n < target.evasion:
-            n = random.random()
-            if n < target.blockChance:
-                print(f'{target.name} is wounded!')
-                target.status['wounded']['duration'] = \
-                    target.status.setdefault('wounded',
-                                             {}).setdefault('duration', 0) + 3
-            else:
-                print(f'{target.name} blocked the attack!')
-        else:
-            print(f'{player.name} missed the attack!')
+        att, crit = player.attack(enemy)
+        if att:
+            print(f'{enemy.name} is wounded!')
+            enemy.status['wounded']['duration'] = \
+                enemy.status.setdefault('wounded',
+                                         {}).setdefault('duration', 0) + 3
+
 
     @staticmethod
-    def armorCrush(player, target):
+    def armorCrush(player, enemy):
         """
         If target doesn't evade or block, it gets crushed effect.
         """
-        player.currentAp -= 2
-        n = random.random()
-        if n < target.evasion:
-            n = random.random()
-            if n < target.blockChance:
-                print(f'{target.name}\'s armor is crushed!')
+        att, crit = player.attack(enemy)
+        if att:
+            print(f'{enemy.name}\'s armor is crushed!')
 
+            player.status.setdefault('crushed',
+                                     {}).setdefault('active', False)
+            player.status['crushed']['duration'] = \
                 player.status.setdefault('crushed',
-                                         {}).setdefault('active', False)
-                player.status['crushed']['duration'] = \
-                    player.status.setdefault('crushed',
-                                             {}).setdefault('duration', 0) + 4
-            else:
-                print(f'{target.name} blocked the attack!')
-        else:
-            print(f'{player.name} missed the attack!')
+                                         {}).setdefault('duration', 0) + 4
 
 
 class Greataxe(Weapon):
@@ -235,14 +180,16 @@ class Greataxe(Weapon):
         player.status['bloodthirst']['duration'] = \
             player.status.setdefault('bloodthirst',
                                      {}).setdefault('duration', 0) + 3
-        player.currentAp -= 1
+
 
     @staticmethod
-    def rampage():
+    def rampage(game, player, enemy):
         """
         The player attacks 2 times.
         """
-        pass
+        for i in range(2):
+            att, crit = player.attack(enemy)
+            game.makeAttack(att, crit, enemy)
 
 
 class Shield(Item):
@@ -267,23 +214,17 @@ class Shield(Item):
             print(f'{key:^15} : {value:^15}')
 
     @staticmethod
-    def shieldBash(player, target):
+    def shieldBash(player, enemy):
         """
         If target doesn't evade or block, it gets stunned for 2 rounds.
         """
-        player.currentAp -= 1
-        n = random.random()
-        if n < target.evasion:
-            n = random.random()
-            if n < target.blockChance:
-                print(f'{target.name} is stunned!')
-                target.status['stunned']['duration'] = \
-                    target.status.setdefault('stunned',
-                                             {}).setdefault('duration', 0) + 2
-            else:
-                print(f'{target.name} blocked the attack!')
-        else:
-            print(f'{player.name} missed the attack!')
+        att, crit = player.attack(enemy)
+        if att:
+            print(f'{enemy.name} is stunned!')
+            enemy.status['stunned']['duration'] = \
+                enemy.status.setdefault('stunned',
+                                         {}).setdefault('duration', 0) + 2
+
 
     @staticmethod
     def shieldWall(player):
@@ -296,7 +237,6 @@ class Shield(Item):
         player.status['fortified']['duration'] = \
             player.status.setdefault('fortified',
                                      {}).setdefault('duration', 0) + 4
-        player.currentAp -= 2
 
 
 class Greatshield(Shield):
