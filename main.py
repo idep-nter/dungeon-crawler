@@ -5,6 +5,8 @@ import items as it
 import objects as ob
 import random
 
+brokenSword = it.Longsword('Broken Sword', 'Longsword', 'common', 1, 1, 3,
+                           0.05, 0, 1)
 dagger = it.Dagger('Dagger', 'Dagger', 'Common', 3, 2, 4, 0.2, 0, 2)
 axe = it.SmallAxe('Axe', 'Small Axe', 'Common', 5, 3, 6, 0.1, 0, 5)
 longsword = it.Longsword('Longsword', 'Longsword', 'Common', 5, 4, 7, 0.05, 0,
@@ -120,6 +122,7 @@ items = {'common': {'weapon': [dagger, axe, longsword, greatsword,
                            ancientVigor, coupDeGrace]}
          }
 
+
 rat = cr.Monster('Rat', 1, 20, 20, 1, 3, 0, 0.1, 0.2, 2, 0,
                  random.randint(300, 500), potions, items)
 vileBat = cr.Monster('Vile Bat', 1, 15, 15, 2, 3, 0, 0.3, 0.2, 1.5, 0,
@@ -195,23 +198,18 @@ class Game:
         """
         Uses coordinates to mark the player's current and previous potions and
         and checks the position of a boss of the level.
-        Also raises an error if the player tries to move ouside the map grid.
+        Also raises an error if the player tries to move outside the map grid.
         """
-        try:
-            px, py = self.prevPos
-            cx, cy = self.currPos
-            if (-1 < cx < 8) and (-1 < cy < 8):
-                if self.bossCheck(cx, cy):
-                    self.level[px][py] = Game.markerO
-                    self.level[cx][cy] = Game.markerX
-                    return True
-                else:
-                    return False
-            else:
-                raise ValueError
-        except ValueError:
-            print('You can\'t go in there.')
+        px, py = self.prevPos
+        cx, cy = self.currPos
+        if (-1 < cx < 5) and (-1 < cy < 8):
+            if self.bossCheck(cx, cy):
+                self.level[px][py] = Game.markerO
+                self.level[cx][cy] = Game.markerX
+                return True
             return False
+        else:
+            print('You can\'t go in there.')
 
     def bossCheck(self, cx, cy):
         """
@@ -222,18 +220,15 @@ class Game:
         object = self.oLevel[cx][cy]
         if isinstance(object, cr.Boss):
             while True:
-                try:
-                    q = input('You feel that something terribly dangerous '
-                              'dwells in this room, do you really want to '
-                              'continue? ')
-                    if q.lower() == 'yes' or q.lower() == 'y':
-                        return True
-                    elif q.lower() == 'no' or q.lower() == 'n':
-                        self.level[cx][cy] = '!'
-                        return False
-                    else:
-                        raise ValueError
-                except ValueError:
+                q = input('You feel that something terribly dangerous '
+                          'dwells in this room, do you really want to '
+                          'continue? ')
+                if q.lower() == 'yes' or q.lower() == 'y':
+                    return True
+                elif q.lower() == 'no' or q.lower() == 'n':
+                    self.level[cx][cy] = '!'
+                    return False
+                else:
                     print('Please answer \'yes\' or \'no\'.')
         return True
 
@@ -360,8 +355,9 @@ class Game:
                         del creature.status['poisoned']
                 if 'stunned' in creature.status:
                     creature.status['stunned']['duration'] -= 1
-                    if creature.status['stunned'] == 0:
+                    if creature.status['stunned']['duration'] == 0:
                         del creature.status['stunned']
+                    return False
                 if 'regeneration' in creature.status:
                     n = random.randint(3, 8)
                     creature.currentHealth += n
@@ -555,73 +551,172 @@ class Game:
     def special(self, player, enemy, c):
         """
         Checks if the input matches with any special abilities and if it does,
-        it checks conditions.
+        it checks if it's a description command or an attack command.
         If it doesn't match anything it returns False for an another player's
         input.
         """
-        if c.lower() == 'heroic strike':
-            if self.specialCheck(player, 1, it.Longsword):
-                it.Longsword.heroicStrike(self, player, enemy)
-                player.currentAp -= 1
-                return True
-        elif c.lower() == 'pommel attack':
-            if self.specialCheck(player, 2, it.Longsword):
-                it.Longsword.pommelAttack(self, player, enemy)
-                player.currentAp -= 2
-                return True
-        elif c.lower() == 'execute':
-            if self.specialCheck(player, 1, it.Greatsword):
-                it.Greatsword.execute(self, player, enemy)
-                player.currentAp -= 1
-                return True
-        elif c.lower() == 'skullsplitter':
-            if self.specialCheck(player, 2, it.Greatsword):
-                it.Greatsword.skullsplitter(self, player, enemy)
-                player.currentAp -= 2
-                return True
-        elif c.lower() == 'poison strike':
-            if self.specialCheck(player, 1, it.Dagger):
-                it.Dagger.poisonStrike(player, enemy)
-                player.currentAp -= 1
-                return True
-        elif c.lower() == 'sinister strike':
-            if self.specialCheck(player, 2, it.Dagger):
-                it.Dagger.sinisterStrike(self, player, enemy)
-                player.currentAp -= 2
-                return True
-        elif c.lower() == 'deep wounds':
-            if self.specialCheck(player, 1, it.SmallAxe):
-                it.SmallAxe.deepWounds(player, enemy)
-                player.currentAp -= 1
-                return True
-        elif c.lower() == 'armor crush':
-            if self.specialCheck(player, 2, it.SmallAxe):
-                it.SmallAxe.armorCrush(player, enemy)
-                player.currentAp -= 2
-                return True
-        elif c.lower() == 'bloodthirst':
-            if self.specialCheck(player, 1, it.Greataxe):
-                it.Greataxe.bloodthirst(player)
-                player.currentAp -= 1
-                return True
-        elif c.lower() == 'rampage':
-            if self.specialCheck(player, 2, it.Greataxe):
-                it.Greataxe.rampage(self, player, enemy)
-                player.currentAp -= 2
-                return True
-        elif c.lower() == 'shield bash':
-            if self.specialCheck(player, 1, it.Shield):
-                it.Shield.shieldBash(player, enemy)
-                player.currentAp -= 1
-                return True
-        elif c.lower() == 'shield wall':
-            if self.specialCheck(player, 2, it.Shield):
-                it.Shield.shieldWall(player)
-                player.currentAp -= 1
-                return True
+        special = re.compile(r'(desc )?((\w+\'?\s*)+)')
+        if 'heroic strike' in c.lower():
+            if 'desc' in c.lower():
+                mo = special.search(c)
+                abName = mo.group(2)
+                print(self.specialDesc(abName))
+                return False
+            else:
+                if self.specialCheck(player, 1, it.Longsword):
+                    it.Longsword.heroicStrike(self, player, enemy)
+                    player.currentAp -= 1
+                    return True
+        elif 'pommel attack' in c.lower():
+            if 'desc' in c.lower():
+                mo = special.search(c)
+                abName = mo.group(2)
+                print(self.specialDesc(abName))
+                return False
+            else:
+                if self.specialCheck(player, 2, it.Longsword):
+                    it.Longsword.pommelAttack(self, player, enemy)
+                    player.currentAp -= 2
+                    return True
+        elif 'execute' in c.lower():
+            if 'desc' in c.lower():
+                mo = special.search(c)
+                abName = mo.group(2)
+                print(self.specialDesc(abName))
+                return False
+            else:
+                if self.specialCheck(player, 1, it.Greatsword):
+                    it.Greatsword.execute(self, player, enemy)
+                    player.currentAp -= 1
+                    return True
+        elif 'skullsplitter' in c.lower():
+            if 'desc' in c.lower():
+                mo = special.search(c)
+                abName = mo.group(2)
+                print(self.specialDesc(abName))
+                return False
+            else:
+                if self.specialCheck(player, 2, it.Greatsword):
+                    it.Greatsword.skullsplitter(self, player, enemy)
+                    player.currentAp -= 2
+                    return True
+        elif 'poison strike' in c.lower():
+            if 'desc' in c.lower():
+                mo = special.search(c)
+                abName = mo.group(2)
+                print(self.specialDesc(abName))
+                return False
+            else:
+                if self.specialCheck(player, 1, it.Dagger):
+                    it.Dagger.poisonStrike(player, enemy)
+                    player.currentAp -= 1
+                    return True
+        elif 'sinister strike' in c.lower():
+            if 'desc' in c.lower():
+                mo = special.search(c)
+                abName = mo.group(2)
+                print(self.specialDesc(abName))
+                return False
+            else:
+                if self.specialCheck(player, 2, it.Dagger):
+                    it.Dagger.sinisterStrike(self, player, enemy)
+                    player.currentAp -= 2
+                    return True
+        elif 'sinister strike' in c.lower():
+            if 'desc' in c.lower():
+                mo = special.search(c)
+                abName = mo.group(2)
+                print(self.specialDesc(abName))
+                return False
+            else:
+                if self.specialCheck(player, 1, it.SmallAxe):
+                    it.SmallAxe.deepWounds(player, enemy)
+                    player.currentAp -= 1
+                    return True
+        elif 'armor crush' in c.lower():
+            if 'desc' in c.lower():
+                mo = special.search(c)
+                abName = mo.group(2)
+                print(self.specialDesc(abName))
+                return False
+            else:
+                if self.specialCheck(player, 2, it.SmallAxe):
+                    it.SmallAxe.armorCrush(player, enemy)
+                    player.currentAp -= 2
+                    return True
+        elif 'bloodthirst' in c.lower():
+            if 'desc' in c.lower():
+                mo = special.search(c)
+                abName = mo.group(2)
+                print(self.specialDesc(abName))
+                return False
+            else:
+                if self.specialCheck(player, 1, it.Greataxe):
+                    it.Greataxe.bloodthirst(player)
+                    player.currentAp -= 1
+                    return True
+        elif 'rampage' in c.lower():
+            if 'desc' in c.lower():
+                mo = special.search(c)
+                abName = mo.group(2)
+                print(self.specialDesc(abName))
+                return False
+            else:
+                if self.specialCheck(player, 2, it.Greataxe):
+                    it.Greataxe.rampage(self, player, enemy)
+                    player.currentAp -= 2
+                    return True
+        elif 'shield bash' in c.lower():
+            if 'desc' in c.lower():
+                mo = special.search(c)
+                abName = mo.group(2)
+                print(self.specialDesc(abName))
+                return False
+            else:
+                if self.specialCheck(player, 1, it.Shield):
+                    it.Shield.shieldBash(player, enemy)
+                    player.currentAp -= 1
+                    return True
+        elif 'shield wall' in c.lower():
+            if 'desc' in c.lower():
+                mo = special.search(c)
+                abName = mo.group(2)
+                print(self.specialDesc(abName))
+                return False
+            else:
+                if self.specialCheck(player, 2, it.Shield):
+                    it.Shield.shieldWall(player)
+                    player.currentAp -= 1
+                    return True
         else:
             print('Invalid command')
             return False
+
+    def specialDesc(self, abName):
+        """
+        Returns a description of a special ability.
+        """
+        abDescriptions = {
+            'heroic strike': 'Modifies player\'s attack by 150 %.',
+            'pommel attack': 'If target doesn\'t evade or block, player attacks ' \
+                             'target by 70% damage and stun it for a round.',
+            'execute': 'The target instantly dies if it\'s under 30 % health or '
+                       'else player\'s attack is reduced to 70 %.',
+            'skullsplitter': 'Modifies player\'s attack by 30 % for each available '
+                             'action point.',
+            'poison strike': 'If target doesn\'t evade or block, it gets poisoned.',
+            'sinister strike': 'Modifies player\'s attack by 175 %.',
+            'deep wounds': 'If target doesn\'t evade or block, it gets bleeding '
+                           'effect.',
+            'armor crush': 'If target doesn\'t evade or block, it gets crushed ' \
+                           'effect.',
+            'bloodthirst': 'The player gets bloodthirst effect.',
+            'rampage': 'The player attacks 2 times.',
+            'shield bash': 'If target doesn\'t evade or block, it gets stunned '
+                           'for 2 rounds.',
+            'shield wall': 'The player gets fortified effect.',
+        }
+        return abDescriptions[abName]
 
     @staticmethod
     def specialCheck(player, ap, instance):
@@ -653,24 +748,22 @@ class Game:
         player = cr.Player(name)
         intro2(name)
         gameRules()
+        player.equipItem(brokenSword)
         while self.flag:
-            try:
-                print('\n' + str(self.level) + '\n')
-                ctrl = input('Which way would you like to go? ').lower()
-                if ctrl in Game.ctrls:
-                    d = Game.ctrls.index(ctrl)
-                    self.prevPos = self.currPos[:]
-                    self.currPos[d <= 2] += d - (1 if d < 3 else 4)
-                    if self.movePlayer():
-                        time.sleep(1)
-                        self.action(player)
-                    else:
-                        self.currPos = self.prevPos[:]
-                elif ctrl == Game.exit:
-                    self.flag = False
+            print('\n' + str(self.level) + '\n')
+            ctrl = input('Which way would you like to go? ').lower()
+            if ctrl in Game.ctrls:
+                d = Game.ctrls.index(ctrl)
+                self.prevPos = self.currPos[:]
+                self.currPos[d <= 2] += d - (1 if d < 3 else 4)
+                if self.movePlayer():
+                    time.sleep(1)
+                    self.action(player)
                 else:
-                    raise ValueError
-            except ValueError:
+                    self.currPos = self.prevPos[:]
+            elif ctrl == Game.exit:
+                self.flag = False
+            else:
                 print('Please enter a proper direction.')
 
 
@@ -686,7 +779,8 @@ def intro2(name):
 Oh yes, you are {name}.! That\'s right. After a while you got used to the dark 
 and realized you had woke up in a cell. Somebody had to lock you up after he had 
 knocked you out. You try to get up and then you notice that the cell doors are 
-open. OK, let\'s do this! You step into the unknown... 
+open. On the floor lays some kind of broken sword, how convenient! 
+OK, let\'s do this! You step into the unknown... 
 
 You come to an empty room consisting of doors on each side lit by torches.
 """)
@@ -706,7 +800,6 @@ The game ends when you defeat the boss of the level or you die trying...
 ================================================================================
 """)
 
-
 def help():
     print("""
 COMMANDS:
@@ -714,6 +807,7 @@ map                shows a map
 attack             attack a monster
 'special attack'   attack a monster with special attack of the currently equiped 
                    weapon
+desc 'special'     get a description of a special attack
 char               shows your statistics and equiped gear
 inv                shows your inventory 
 equip 'item'       equip an item

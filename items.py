@@ -47,7 +47,6 @@ class Longsword(Weapon):
             att = round(att / 100 * 150)
             game.makeAttack(att, crit, enemy)
 
-
     @staticmethod
     def pommelAttack(game, player, enemy):
         """
@@ -73,7 +72,7 @@ class Greatsword(Weapon):
     @staticmethod
     def execute(game, player, enemy):
         """
-        The target instantly dies if it's under 30 % of health else player's
+        The target instantly dies if it's under 30 % health or else player's
         attack is reduced to 70 %.
         """
         att, crit = player.attack(enemy)
@@ -124,8 +123,9 @@ class Dagger(Weapon):
         Modifies player's attack by 175 %.
         """
         att, crit = player.attack(enemy)
-        att = round(att / 100 * 150)
-        game.makeAttack(att, crit, enemy)
+        if att:
+            att = round(att / 100 * 150)
+            game.makeAttack(att, crit, enemy)
 
 
 class SmallAxe(Weapon):
@@ -367,6 +367,9 @@ class RegenPotion(Potion):
 
     @staticmethod
     def regen(player):
+        """
+        Adds regeneration status to the player.
+        """
         player.status.setdefault('regeneration',
                                  {}).setdefault('duration',
                                                 5) + 5

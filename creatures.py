@@ -210,7 +210,7 @@ class Creature:
 
 class Player(Creature):
     def __init__(self, name, lvl=1, exp=0, maxHealth=100, currentHealth=100,
-                 currentAp=0, maxAp=10, minDps=1, maxDps=2, armorValue=0,
+                 currentAp=0, maxAp=10, minDps=0, maxDps=0, armorValue=0,
                  evasion=0.2, critChance=0.1, critMulti=1.5, blockChance=0,
                  maxWeight=100, currentWeight=0, gold=0, weapon=None,
                  armor=None, ring1=None, ring2=None, shield=None):
