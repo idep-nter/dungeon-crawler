@@ -142,8 +142,12 @@ class Creature:
             if random.random() < self.critChance:
                 attack = attack * self.critMulti
             attack = round(attack / (1 + (player.armorValue / 100)))
-            print(f'{self.name} stole {attack} health from you!')
-            self.currentHealth += attack
+            steal = attack
+            self.currentHealth += steal
+            if self.currentHealth > self.maxHealth:
+                steal = (self.currentHealth - self.maxHealth) - steal
+                self.currentHealth = self.maxHealth
+            print(f'{self.name} stole {steal} health from you!')
             player.currentHealth -= attack
         else:
             return False
@@ -228,7 +232,7 @@ class Player(Creature):
         self.ring1 = ring1
         self.ring2 = ring2
         self.shield = shield
-        self.inventory = []
+        self.inventory = [] # make dict
         self.perks = []
         self.status = {}
 
@@ -285,9 +289,16 @@ class Player(Creature):
         """
         Prints player's inventory.
         """
-        print(f'{self.gold} gold')
+        invDict = {}
         for item in self.inventory:
-            print(f'{item.name}')
+            invDict[item.name] = invDict.setdefault(item.name, 0) + 1
+
+        print(f'{self.gold} gold')
+        for item, num in invDict.items():
+            if num > 1:
+                print(f'{item} [{num}]')
+            else:
+                print(f'{item}')
 
     def equipItem(self, item):
         """

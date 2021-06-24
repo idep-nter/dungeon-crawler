@@ -251,9 +251,11 @@ class Game:
             self.oLevel[cx][cy] = None
         elif isinstance(object, cr.Monster):
             print(f'Damn, you see a {object.name}!')
+            time.sleep(1)
             self.battle(player, object, cx, cy)
         elif isinstance(object, cr.Boss):
             print(f'Damn, you see a {object.name}! He looks tough!')
+            time.sleep(1)
             self.battle(player, object, cx, cy)
 
     @staticmethod
@@ -499,6 +501,7 @@ class Game:
         drink = re.compile(r'drink ((\w+\'?\s*)+)')
         while True:
             a = input('\nWhat\'s your action? ').lower()
+            time.sleep(1)
             if a == 'attack':
                 att, crit = player.attack(enemy)
                 self.makeAttack(att, crit, enemy)
@@ -622,7 +625,7 @@ class Game:
                     it.Dagger.sinisterStrike(self, player, enemy)
                     player.currentAp -= 2
                     return True
-        elif 'sinister strike' in c.lower():
+        elif 'deep wounds' in c.lower():
             if 'desc' in c.lower():
                 mo = special.search(c)
                 abName = mo.group(2)
@@ -752,6 +755,7 @@ class Game:
         while self.flag:
             print('\n' + str(self.level) + '\n')
             ctrl = input('Which way would you like to go? ').lower()
+            time.sleep(1)
             if ctrl in Game.ctrls:
                 d = Game.ctrls.index(ctrl)
                 self.prevPos = self.currPos[:]
