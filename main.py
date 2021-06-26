@@ -709,22 +709,22 @@ class Game:
             'heroic strike': 'Modifies player\'s attack by 150 %.',
             'pommel attack': 'If target doesn\'t evade or block, player'
                              'attacks target by 70% damage and stun it for a'
-                             'round.',
+                             ' round.',
             'execute': 'The target instantly dies if it\'s under 30 % health or'
-                       'else player\'s attack is reduced to 70 %.',
+                       ' else player\'s attack is reduced to 70 %.',
             'skullsplitter': 'Modifies player\'s attack by 30 % for each'
                              'available action point.',
             'poison strike': 'If target doesn\'t evade or block, it gets'
                              'poisoned.',
             'sinister strike': 'Modifies player\'s attack by 175 %.',
             'deep wounds': 'If target doesn\'t evade or block, it gets bleeding'
-                           'damage for 3 rounds',
+                           ' damage for 3 rounds',
             'armor crush': 'If target doesn\'t evade or block, it\'s armor is '
-                           'reduced by 30 % for 4 rounds',
+                           ' reduced by 30 % for 4 rounds',
             'bloodthirst': 'Player\'s attack is increased by 50 % for 3 rounds',
             'rampage': 'The player attacks 2 times.',
             'shield bash': 'If target doesn\'t evade or block, it gets stunned'
-                           'for 2 rounds.',
+                           ' for 2 rounds.',
             'shield wall': 'Player\'s armor increase by 50 % for 4 rounds',
         }
         return abDescriptions[abName]
