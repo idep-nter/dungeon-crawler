@@ -165,16 +165,18 @@ class Game:
 
     def __init__(self):
         self.flag = True
-        self.level = Level(Game.default)
-        self.oLevel = Level(self.mapGenerator())
+        self.level = Level(Game.default)  # visible '?' map
+        self.oLevel = Level(self.mapGenerator())  # hidden map of objects
         self.prevPos = Game.start[:]
         self.currPos = Game.start[:]
-        self.movePlayer()
+        self.movePlayer()  # move player to the starting position
 
     def mapGenerator(self):
         """
-        Generates a 8x8 grid with random objects and starting position for the
-        player.
+        Generates a 5x8 grid with random objects and the starting position for
+        the player.
+        Also places a boss object on a tile which is not the starting position
+        for the player.
         """
         map = []
         for i in range(5):
@@ -196,9 +198,9 @@ class Game:
 
     def movePlayer(self):
         """
-        Uses coordinates to mark the player's current and previous potions and
-        and checks the position of a boss of the level.
-        Also raises an error if the player tries to move outside the map grid.
+        Uses coordinates to mark player's current and previous positions and
+        and checks the position of the boss of the level.
+        Warns the player if he tries to move outside the map grid.
         """
         px, py = self.prevPos
         cx, cy = self.currPos
@@ -213,8 +215,8 @@ class Game:
 
     def bossCheck(self, cx, cy):
         """
-        If the boss is located on a position the player tries to move to, he'll
-        be asked if he really want to move there. If not '!' will be marked on
+        If the boss is located on a position the player tries to move on, he'll
+        be asked if he really wants to move there. If not '!' will be marked on
         the map.
         """
         object = self.oLevel[cx][cy]
@@ -234,7 +236,8 @@ class Game:
 
     def action(self, player):
         """
-        Depending on an object on the player's position given action will start.
+        Depending on an object on player's position given action will start.
+        After that the object is deleted from that spot.
         """
         cx, cy = self.currPos
         object = self.oLevel[cx][cy]
@@ -261,7 +264,7 @@ class Game:
     @staticmethod
     def printAbility(player):
         """
-        Prints the player's abilities depending on a weapon he has equiped.
+        Prints player's abilities depending on a weapon he is using.
         """
         if isinstance(player.weapon, it.Longsword):
             print("Heroic Strike - 1 ap\nPommel Attack - 2 ap")
@@ -290,7 +293,7 @@ class Game:
     @staticmethod
     def makeAttack(attack, crit, target):
         """
-        Makes an attack if it's successful and prints the outcome.
+        Makes an attack and if it's successful it prints the outcome.
         """
         if attack:
             if crit:
@@ -342,7 +345,7 @@ class Game:
     @staticmethod
     def stateCheck(creature, creatureSave):
         """
-        Checks creature's statuses from it's list and makes and action based
+        Checks creature's statuses from it's list and makes an action based
         on it.
         If the duration of a status becomes 0 it deletes it from the list.
         """
@@ -431,7 +434,7 @@ class Game:
     @staticmethod
     def restore(creature, creatureSave):
         """
-        Restores statues and stats of a creature to the state before the fight.
+        Restores state and stats of a creature from the save before the fight.
         In case of the player it also resets ap points.
         """
         creature.minDps = creatureSave.minDps
@@ -444,12 +447,15 @@ class Game:
 
     def battle(self, player, enemy, cx, cy):
         """
-        Saves the player and and enemy to be restored from after the fight.
-        Combat is by default False for player to be able switch gear.
+        Saves the player and an enemy to a variable to be restored after the
+        fight.
+        The Combat variable is by default False for the player to be able switch
+        gear.
         It also counts rounds for enemy abilities which depends on that.
-        After start of the fight it checks states, prints stats and inputs for a
-        command.
-        After an attack checks hp an enemy and if it's the boss it ends the game.
+        After the start of the fight it checks states, prints stats and inputs
+        the player for a command.
+        After an attack it checks hp of an enemy and if it's the boss it ends
+        the game in case it dies.
         If enemy won't die after the attack the enemy round starts.
         """
         round = 1
@@ -502,7 +508,7 @@ class Game:
         while True:
             a = input('\nWhat\'s your action? ').lower()
             time.sleep(1)
-            if a == 'attack':
+            if a == 'attack' or a == 'a':
                 att, crit = player.attack(enemy)
                 self.makeAttack(att, crit, enemy)
                 player.appAdd(att)
@@ -553,9 +559,9 @@ class Game:
 
     def special(self, player, enemy, c):
         """
-        Checks if the input matches with any special abilities and if it does,
+        Checks if the input matches with any special ability and if it does,
         it checks if it's a description command or an attack command.
-        If it doesn't match anything it returns False for an another player's
+        If it doesn't match anything it returns False for another player's
         input.
         """
         special = re.compile(r'(desc )?((\w+\'?\s*)+)')
@@ -601,7 +607,7 @@ class Game:
             else:
                 if self.specialCheck(player, 2, it.Greatsword):
                     it.Greatsword.skullsplitter(self, player, enemy)
-                    player.currentAp -= 2
+                    player.currentAp = 0
                     return True
         elif 'poison strike' in c.lower():
             if 'desc' in c.lower():
@@ -701,30 +707,32 @@ class Game:
         """
         abDescriptions = {
             'heroic strike': 'Modifies player\'s attack by 150 %.',
-            'pommel attack': 'If target doesn\'t evade or block, player attacks ' \
-                             'target by 70% damage and stun it for a round.',
-            'execute': 'The target instantly dies if it\'s under 30 % health or '
+            'pommel attack': 'If target doesn\'t evade or block, player'
+                             'attacks target by 70% damage and stun it for a'
+                             'round.',
+            'execute': 'The target instantly dies if it\'s under 30 % health or'
                        'else player\'s attack is reduced to 70 %.',
-            'skullsplitter': 'Modifies player\'s attack by 30 % for each available '
-                             'action point.',
-            'poison strike': 'If target doesn\'t evade or block, it gets poisoned.',
+            'skullsplitter': 'Modifies player\'s attack by 30 % for each'
+                             'available action point.',
+            'poison strike': 'If target doesn\'t evade or block, it gets'
+                             'poisoned.',
             'sinister strike': 'Modifies player\'s attack by 175 %.',
-            'deep wounds': 'If target doesn\'t evade or block, it gets bleeding '
-                           'effect.',
-            'armor crush': 'If target doesn\'t evade or block, it gets crushed ' \
-                           'effect.',
-            'bloodthirst': 'The player gets bloodthirst effect.',
+            'deep wounds': 'If target doesn\'t evade or block, it gets bleeding'
+                           'damage for 3 rounds',
+            'armor crush': 'If target doesn\'t evade or block, it\'s armor is '
+                           'reduced by 30 % for 4 rounds',
+            'bloodthirst': 'Player\'s attack is increased by 50 % for 3 rounds',
             'rampage': 'The player attacks 2 times.',
-            'shield bash': 'If target doesn\'t evade or block, it gets stunned '
+            'shield bash': 'If target doesn\'t evade or block, it gets stunned'
                            'for 2 rounds.',
-            'shield wall': 'The player gets fortified effect.',
+            'shield wall': 'Player\'s armor increase by 50 % for 4 rounds',
         }
         return abDescriptions[abName]
 
     @staticmethod
     def specialCheck(player, ap, instance):
         """
-        Checks if the player meets conditions to do special attack and returns
+        Checks if the player meets conditions to do a special attack and returns
         False if he doesn't.
         """
         if isinstance(player.weapon, instance) or \
@@ -741,8 +749,8 @@ class Game:
     def play(self):
         """
         Prints the intro, rules and inputs the player for his name.
-        Prints the map of the level and asks him for a direction he wants to
-        move to.
+        Prints the map of the level and asks the player for a direction he wants
+        to move to.
         If an error doesn't occur it moves the player and starts an action
         depending on an object on that location.
         """

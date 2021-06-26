@@ -20,8 +20,8 @@ class Creature:
 
     def attack(self, target):
         """
-        The base attack of a creature which tries to pass target's evasion and
-        block chance if the attack already didn't pass by decorator.
+        The base attack of a creature tries to pass target's evasion and
+        block chance.
         Then it tries to modify attack by a crit chance.
         At the end the the attack number is reduced by target's armor value.
         """
@@ -51,8 +51,8 @@ class Creature:
 
     def goldDrop(self, player):
         """
-        Calculates gold range depending on a creature's level and type and then
-        it add a random number of gold to the player in a given range.
+        Calculates a gold range depending on creature's level and type and then
+        adds a random number of gold to the player in a given range.
         """
         tMode = self.creatureType()
         baseGold = [5, 10]
@@ -68,7 +68,7 @@ class Creature:
 
     def itemDrop(self, player):
         """
-        Adds an item to the player's inventory which quality is depending on a
+        Adds an item to the player's inventory which quality depends on a
         random number. This random number is modified by creature's level and
         type.
         """
@@ -112,6 +112,7 @@ class Creature:
 
     def regenerate(self):
         """
+        Enemy special ability.
         Regenerates creature's health in a given range if it passes the
         condition.
         """
@@ -125,7 +126,8 @@ class Creature:
 
     def stealLife(self, player):
         """
-        Instead of basic attack it tries to heal itself by the given damage if
+        Enemy special ability.
+        Instead of a basic attack it tries to heal itself by the given damage if
         it passes all conditions.
         It is doesn't pass first random number condition, basic attack is used
         instead.
@@ -155,7 +157,8 @@ class Creature:
     @staticmethod
     def stun(player):
         """
-        Player gets stunned effect if it passes the test.
+        Enemy special ability.
+        The player gets a stunned effect if it passes the test.
         """
         n = random.random()
         if n < 0.2:
@@ -168,7 +171,8 @@ class Creature:
     @staticmethod
     def poison(player):
         """
-        Player gets poisoned effect if it passes the test.
+        Enemy special ability.
+        The player gets a poisoned effect if it passes the test.
         """
         n = random.random()
         if n < 0.2:
@@ -180,7 +184,8 @@ class Creature:
     @staticmethod
     def curse(player):
         """
-        Player gets cursed effect if it passes the test.
+        Enemy special ability.
+        The player gets a cursed effect if it passes the test.
         """
         n = random.random()
         if n < 0.2:
@@ -193,7 +198,8 @@ class Creature:
     @staticmethod
     def disease(player):
         """
-        Player gets diseased effect if it passes the test.
+        Enemy special ability.
+        The player gets a diseased effect if it passes the test.
         """
         n = random.random()
         if n < 0.2:
@@ -204,6 +210,10 @@ class Creature:
             print('You have been diseased!')
 
     def fortify(self):
+        """
+        Enemy special ability.
+        An enemy gets a fortify effect if it passes the test.
+        """
         self.status.setdefault('fortified',
                                      {}).setdefault('active', False)
         self.status['fortified']['duration'] = \
@@ -232,13 +242,14 @@ class Player(Creature):
         self.ring1 = ring1
         self.ring2 = ring2
         self.shield = shield
-        self.inventory = [] # make dict
+        self.inventory = []
         self.perks = []
         self.status = {}
 
     def showChar(self):
         """
-        Prints player's stats in formatted way.
+        First it makes a dictionary of player's attributes from which it
+        prints player's stats in formatted way.
         """
         exp = f'{self.exp}/{int(self.lvl * 1000 * 1.5)}'
         health = f'{self.currentHealth}/{self.maxHealth}'
@@ -287,7 +298,8 @@ class Player(Creature):
 
     def showInventory(self):
         """
-        Prints player's inventory.
+        First it makes a dictionary from player's inventory list from which
+        prints items in formatted way.
         """
         invDict = {}
         for item in self.inventory:
@@ -307,11 +319,11 @@ class Player(Creature):
         """
         try:
             if not isinstance(item, it.Ring):
-                if not self.weightCheck(item):
+                if not self.weightCheck(item):  # checks player's total weight
                     print('You weight too much!')
                     raise ValueError
             if isinstance(item, it.Weapon):
-                if not self.handCheck(item):
+                if not self.handCheck(item): # checks if player has free hand(s)
                     print('Cannot equip!')
                     raise ValueError
                 if self.weapon:
@@ -326,7 +338,7 @@ class Player(Creature):
                 self.inventory.remove(item)
                 print(f'{item.name} equiped!')
             elif isinstance(item, it.Shield):
-                if not self.handCheck(item):
+                if not self.handCheck(item):  # hand check for shield
                     print(f'Cannot equip!')
                     raise ValueError
                 if self.shield:
@@ -349,7 +361,7 @@ class Player(Creature):
                 self.inventory.remove(item)
                 print(f'{item.name} equiped!')
             elif isinstance(item, it.Ring):
-                if self.ring1 and not self.ring2:
+                if self.ring1 and not self.ring2: # equips ring in a proper slot
                     self.ring2 = item
                 elif not self.ring1 and self.ring2:
                     self.ring1 = item
@@ -426,7 +438,7 @@ class Player(Creature):
 
     def itemSearch(self, player, itemName):
         """
-        Returns searched instance of an item from player's inventory if it's in
+        Returns searched instance of an item from player's inventory if it's
         there.
         """
         attrs = vars(player)
@@ -441,8 +453,7 @@ class Player(Creature):
 
     def drinkPotion(self, potion):
         """
-        Uses a potion if it's in the player's inventory and takes
-        effects with it.
+        Uses a potion if it's in player's inventory and does it's effect.
         """
         if isinstance(potion, it.HealthPotion):
             heal = potion.heal
@@ -463,7 +474,7 @@ class Player(Creature):
 
     def death(self):
         """
-        Checks if creature's health points and returns True if they're none.
+        Checks creature's health points and returns True if they're 0 or below.
         """
         return True if self.currentHealth <= 0 else False
 
@@ -502,7 +513,7 @@ class Player(Creature):
         """
         Increments player's level by one, adds health points and subtract exp
         points needed for the current level.
-        Also checks for adding AP point and new perk.
+        Also checks condition for adding AP point and a new perk.
         """
         self.lvl += 1
         print('LEVEL UP!')
@@ -515,49 +526,42 @@ class Player(Creature):
             self.choosePerk()
 
     def addMaxAp(self):
-        """
-        Adds up 1 APP point.
-        """
+        """Adds up 1 APP point."""
         self.maxAp += 1
         print('+1 max action point!')
 
     def choosePerk(self):
         """
-        Prints perks to be chosen from and input's player for a wanted one.
-        Checks correctness of the input.
+        Prints perks to be chosen from and inputs the player to choose one.
         """
         perks = {'Ninja': '+0.1 evasion', 'Berserk': '+0.1 crit chance',
                  'Bud Spencer': '+50 max health', 'Defendor': '+30 armor'}
         for key, value in perks.items():
             print(f'{key:^25} : {value:^25}')
         while True:
-            try:
-                choice = input('Choose your new Perk!')
-                if choice.lower() == 'ninja':
-                    self.perks.append('Ninja')
-                    self.evasion += 0.1
-                    return True
-                elif choice.lower() == 'berserk':
-                    self.perks.append('Berserk')
-                    self.critChance += 0.1
-                    return True
-                elif choice.lower() == 'bud spencer':
-                    self.perks.append('Bud Spencer')
-                    self.maxHealth += 50
-                    return True
-                elif choice.lower() == 'defendor':
-                    self.perks.append('Defendor')
-                    self.armorValue += 30
-                    return True
-                else:
-                    print('Please type the right perk from the list.')
-                    raise ValueError
-            except ValueError:
+            choice = input('Choose your new Perk!')
+            if choice.lower() == 'ninja':
+                self.perks.append('Ninja')
+                self.evasion += 0.1
+                return True
+            elif choice.lower() == 'berserk':
+                self.perks.append('Berserk')
+                self.critChance += 0.1
+                return True
+            elif choice.lower() == 'bud spencer':
+                self.perks.append('Bud Spencer')
+                self.maxHealth += 50
+                return True
+            elif choice.lower() == 'defendor':
+                self.perks.append('Defendor')
+                self.armorValue += 30
+                return True
+            else:
                 print('Please type the right perk from the list.')
 
     def appAdd(self, attack):
         """
-        Gets attack value from the argument and returns a number of AP points
+        Gets an attack value from the argument and returns a number of AP points
         from a list.
         """
         ap = 0
@@ -585,7 +589,7 @@ class Monster(Creature):
     def death(self, player):
         """
         Checks monster's health points and if it passes the condition it uses
-        drop functions
+        drop functions.
         It also adds up exp points to the player and resets monster's health
         for the next encounter.
         """

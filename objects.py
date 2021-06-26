@@ -8,9 +8,7 @@ class Shrine:
 
     @staticmethod
     def heal(player):
-        """
-        Sets player's health points to maximum.
-        """
+        """Sets player's health points to maximum."""
         player.currentHealth = player.maxHealth
 
 
@@ -31,7 +29,7 @@ class Chest:
     @staticmethod
     def goldFind(player):
         """
-        Adds random number of gold in a given range to the player.
+        Adds a random number of gold in a given range to the player.
         """
         rng = [20, 50]
         gold = random.randint(rng[0], rng[1])
@@ -40,14 +38,14 @@ class Chest:
 
     def itemFind(self, player):
         """
-        Adds an item to the player's inventory which quality is depending on a
+        Adds an item to the player's inventory which quality depends on a
         random number.
         """
         item = None
         n = random.random()
         if n < 0.1:
             item = self.randomItem('epic')
-        if n < 0.2:
+        elif n < 0.2:
             item = self.randomItem('rare')
         elif n < 0.5:
             item = self.randomItem('uncommon')

@@ -93,8 +93,8 @@ class Greatsword(Weapon):
         if att:
             aMod = 0
             for i in range(player.currentAp):
-                aMod += 0.3
-            att *= aMod
+                aMod += 30
+            att = round(att / 100 * (100 + aMod))
             game.makeAttack(att, crit, enemy)
 
 
@@ -224,7 +224,6 @@ class Shield(Item):
             enemy.status['stunned']['duration'] = \
                 enemy.status.setdefault('stunned',
                                          {}).setdefault('duration', 0) + 2
-
 
     @staticmethod
     def shieldWall(player):
